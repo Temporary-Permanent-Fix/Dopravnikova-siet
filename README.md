@@ -50,3 +50,9 @@ Pre plný desktop build treba doplniť Tauri obal:
 
 Rust backend (`src-tauri/`) sa z `.exe` obnoviť nedal (skompilovaný strojový kód).
 Keďže appka je hlavne webview wrapper, dá sa dopísať nanovo podľa použitých pluginov vyššie.
+
+## Windows inštalátor (bez Tauri)
+
+Kým plný Tauri build nie je hotový, appku je možné nainštalovať na Windows
+ako lokálny web server (bez závislostí) cez skripty v `windows-installer/`
+— pozri `windows-installer/README.md`.
