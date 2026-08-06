@@ -10,6 +10,19 @@ $AppName = 'Dopravnikova siet'
 $InstallDir = Join-Path $env:LOCALAPPDATA 'DopravnikovaSiet'
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 
+foreach ($required in @('src', 'server', 'data', 'package.json')) {
+    if (-not (Test-Path (Join-Path $RepoRoot $required))) {
+        Write-Host ''
+        Write-Host "CHYBA: v priecinku $RepoRoot chyba '$required'." -ForegroundColor Red
+        Write-Host 'Tento skript musi byt spusteny z priecinka windows-installer, ktory je'
+        Write-Host 'sucastou celeho stiahnuteho projektu (vedla priecinkov src/, server/, data/'
+        Write-Host 'a suboru package.json). Ak mate skopirovany iba samotny priecinok'
+        Write-Host 'windows-installer, stiahnite cely projekt znova, alebo pouzite hotovy'
+        Write-Host 'jednosuborovy instalator dist\DopravnikovaSietSetup.exe namiesto tohto skriptu.'
+        exit 1
+    }
+}
+
 function Test-NodeInstalled {
     $cmd = Get-Command node -ErrorAction SilentlyContinue
     return [bool]$cmd
