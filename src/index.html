@@ -9,11 +9,16 @@
 <!-- glpk.js (GLPK 5.0 WASM) — fallback solver; načítá se přes import() při solve.
      Primární solver je HiGHS (offline, ve Web Workeru); GLPK jen když HiGHS selže. -->
 <style>
-@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:400; font-display:swap; src:url('assets/fonts/ibm-plex-sans-400.woff2') format('woff2'); }
-@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:500; font-display:swap; src:url('assets/fonts/ibm-plex-sans-500.woff2') format('woff2'); }
-@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:600; font-display:swap; src:url('assets/fonts/ibm-plex-sans-600.woff2') format('woff2'); }
-@font-face { font-family:'IBM Plex Mono'; font-style:normal; font-weight:400; font-display:swap; src:url('assets/fonts/ibm-plex-mono-400.woff2') format('woff2'); }
-@font-face { font-family:'IBM Plex Mono'; font-style:normal; font-weight:500; font-display:swap; src:url('assets/fonts/ibm-plex-mono-500.woff2') format('woff2'); }
+@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:400; font-display:swap; src:url('assets/fonts/ibm-plex-sans-400-latin.woff2') format('woff2'); unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:400; font-display:swap; src:url('assets/fonts/ibm-plex-sans-400-latinext.woff2') format('woff2'); unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:500; font-display:swap; src:url('assets/fonts/ibm-plex-sans-500-latin.woff2') format('woff2'); unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:500; font-display:swap; src:url('assets/fonts/ibm-plex-sans-500-latinext.woff2') format('woff2'); unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:600; font-display:swap; src:url('assets/fonts/ibm-plex-sans-600-latin.woff2') format('woff2'); unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family:'IBM Plex Sans'; font-style:normal; font-weight:600; font-display:swap; src:url('assets/fonts/ibm-plex-sans-600-latinext.woff2') format('woff2'); unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family:'IBM Plex Mono'; font-style:normal; font-weight:400; font-display:swap; src:url('assets/fonts/ibm-plex-mono-400-latin.woff2') format('woff2'); unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family:'IBM Plex Mono'; font-style:normal; font-weight:400; font-display:swap; src:url('assets/fonts/ibm-plex-mono-400-latinext.woff2') format('woff2'); unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
+@font-face { font-family:'IBM Plex Mono'; font-style:normal; font-weight:500; font-display:swap; src:url('assets/fonts/ibm-plex-mono-500-latin.woff2') format('woff2'); unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
+@font-face { font-family:'IBM Plex Mono'; font-style:normal; font-weight:500; font-display:swap; src:url('assets/fonts/ibm-plex-mono-500-latinext.woff2') format('woff2'); unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
 :root {
   /* Backgrounds */
   --bg: #f4f6f9;            /* Page background — cool light gray */
@@ -697,20 +702,10 @@ body {
 .modal-dialog .modal-body strong { color: #2a2520; }
 .modal-buttons { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
 .modal-buttons .btn { min-width: 90px; }
-/* ---- Save/Load verzí CZLC4 (formulář + picker) ---- */
-.czlc4-field { display: block; margin: 0 0 10px; }
-.czlc4-field > span { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin: 0 0 4px; }
-.czlc4-field input { width: 100%; box-sizing: border-box; padding: 7px 9px; border: 1px solid var(--border-strong); border-radius: 6px; font: 13px 'IBM Plex Sans', sans-serif; background: var(--surface); color: var(--text); }
-.czlc4-field input:focus { outline: none; border-color: var(--accent); }
-.czlc4-hint { font-size: 11.5px; color: var(--text-tertiary); line-height: 1.5; margin: 4px 0 0; }
-.czlc4-hint code { background: var(--surface-soft); padding: 1px 4px; border-radius: 3px; }
-.czlc4-hint a { color: var(--accent); }
-.czlc4-ver-row { display: flex; align-items: center; gap: 8px; padding: 8px 6px; border-radius: 6px; cursor: pointer; }
-.czlc4-ver-row:hover { background: var(--surface-soft); }
-.czlc4-ver-row input { margin: 0; flex: 0 0 auto; }
-.czlc4-ver-main { flex: 1 1 auto; color: var(--text); font-size: 13px; }
-.czlc4-ver-meta { flex: 0 0 auto; color: var(--text-tertiary); font-size: 11.5px; white-space: nowrap; }
-.czlc4-ver-sep { margin: 12px 0 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--text-tertiary); border-top: 1px solid var(--border); padding-top: 10px; }
+.live-config-field { display:block; }
+.live-config-field > span { display:block; margin:0 0 4px; color:var(--text-secondary); font-size:12px; font-weight:600; }
+.live-config-field input { box-sizing:border-box; width:100%; padding:7px 9px; border:1px solid var(--border-strong); border-radius:6px; background:var(--surface); color:var(--text); font:13px 'IBM Plex Sans', sans-serif; }
+.live-config-field input:focus { outline:none; border-color:var(--accent); }
 .shortcuts-dialog { max-width: 720px; }
 .shortcuts-cols {
   display: grid;
@@ -1109,6 +1104,25 @@ body {
   font-style: italic;
   font-size: 12px;
 }
+.live-monitor {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px 8px;
+  margin-top: 8px;
+  padding: 7px 10px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  color: var(--text-secondary);
+  font: 11px 'IBM Plex Mono', monospace;
+}
+.live-monitor .live-state { font-weight: 600; }
+.live-monitor .live-state.ok { color: #15803d; }
+.live-monitor .live-state.waiting { color: #a16207; }
+.live-monitor .live-state.error { color: #b91c1c; }
+.live-monitor .live-separator { color: var(--border-strong, #b8c0ca); }
+.live-monitor .live-error { color: #b91c1c; flex-basis: 100%; }
 @keyframes chevron-flow {
   from { transform: translateX(0); }
   to   { transform: translateX(22px); }
@@ -1513,7 +1527,7 @@ kbd {
       </div>
       <div class="sud-spec sud-spec-sim" style="bottom:-12%;left:0%;animation-delay:1800ms;">
         <div class="sud-spec-card">
-          <span class="sud-sim-play"><i class="ti ti-player-play-filled"></i></span>
+          <span class="sud-sim-play"><i class="ti ti-player-play"></i></span>
           <span class="sud-sim-txt">Simulace · Rovnoměrná</span>
           <span class="sud-sim-rate">3000 j/h</span>
         </div>
@@ -1593,8 +1607,7 @@ kbd {
     </div>
 
     <div class="toolbar">
-      <button class="btn btn-primary" id="btn-load-czlc4"><i class="ti ti-folder-open"></i>Načíst CZLC4</button>
-      <button class="btn" id="btn-save-czlc4" title="Uložit aktuální mapu jako novou verzi na GitHub"><i class="ti ti-cloud-upload"></i>Uložit verzi</button>
+      <button class="btn btn-primary" id="btn-load-sklc3"><i class="ti ti-folder-open"></i>Načíst SKLC3</button>
       <div class="sep"></div>
       <button class="btn" id="btn-import" title="Importovat síť z JSON"><i class="ti ti-upload"></i>Import</button>
       <button class="btn" id="btn-export" title="Exportovat síť do JSON"><i class="ti ti-download"></i>Export</button>
@@ -1630,10 +1643,10 @@ kbd {
         </div>
         <div id="welcome-card" class="welcome-card" hidden>
           <div class="welcome-inner">
-            <h2>Začni s prázdnou skicou nebo načti CZLC4</h2>
+            <h2>Začni s prázdnou skicou nebo načti SKLC3</h2>
             <p>Editor pro modelování průtoků dopravníkové sítě napříč patry. Po načtení skicy můžeš editovat topologii, nastavit kapacity a podíly cílů, a spustit LP optimalizaci.</p>
             <div class="welcome-actions">
-              <button class="btn btn-primary" id="welcome-load-czlc4">Načíst CZLC4</button>
+              <button class="btn btn-primary" id="welcome-load-sklc3">Načíst SKLC3</button>
               <button class="btn" id="welcome-import">Importovat JSON</button>
               <button class="btn" id="welcome-blank">Začít prázdnou</button>
             </div>
@@ -1696,11 +1709,15 @@ kbd {
         <div class="sim-buttons">
           <button class="btn-sim" id="btn-simulate">▶ Rovnoměrné</button>
           <button class="btn-sim-opt" id="btn-optimize">⚙ Optimalizovat</button>
+          <button class="btn-sim" id="btn-telemetry-demo" title="Demo pohybu podle doplněných Kibana směrů">▶ Demo pohyb</button>
+          <button class="btn-sim" id="btn-live-telemetry" title="Živé dáta cez lokálny SKLC3 server">● Live</button>
+          <button class="btn-sim" id="btn-kibana-link" title="Nastaviť dopyt z Kibana linku">🔗 Kibana link</button>
           <button class="btn-sim-export" id="btn-export-sim" disabled title="Nejdřív spusť Optimalizaci">⤓ TMS matice (CSV)</button>
           <button class="btn-sim-export" id="btn-export-assignment" disabled title="Nejdřív naimportuj trasy v Matici cílů">⤓ Cíl × trasa (CSV)</button>
         </div>
         <div class="sim-shares" id="sim-shares"></div>
         <div class="sim-preflight" id="sim-preflight"></div>
+        <div class="live-monitor" id="live-monitor" hidden aria-live="polite"></div>
         <span class="sim-result" id="sim-result">
           <span class="empty">Rovnoměrné = každý uzel rozdělí tok stejnoměrně. Optimalizace = LP najde nejlepší rozdělení podle podílů cílů.</span>
         </span>
@@ -2034,6 +2051,43 @@ kbd {
     </div>
     <div class="modal-buttons">
       <button class="btn" id="shortcuts-close">Zavřít</button>
+    </div>
+  </div>
+</div>
+
+<div id="kibana-link-modal" class="modal-backdrop" hidden>
+  <div class="modal-dialog" onclick="event.stopPropagation()" style="max-width:560px;">
+    <div class="shortcuts-head">
+      <h3 style="margin:0;">Kibana link</h3>
+      <button class="shortcuts-close" id="kibana-link-close" title="Zavrieť (Esc)">✕</button>
+    </div>
+    <div style="margin-top:14px; display:flex; flex-direction:column; gap:14px; max-height:70vh; overflow-y:auto;">
+      <div id="kibana-es-summary" hidden style="font-size:12px; color:var(--text-secondary); background:var(--bg-secondary); border-radius:8px; padding:8px 12px;">
+        Elasticsearch: <strong id="kibana-es-summary-text"></strong>
+      </div>
+      <div id="kibana-es-unconfigured" hidden class="live-error" role="alert">Server nemá nakonfigurované pripojenie na Elasticsearch (server/.env) — Kibana link nie je možné použiť.</div>
+      <div>
+        <p style="margin:0 0 8px; font-size:12px; color:var(--text-secondary); line-height:1.5;">1. Vlož Kibana link a otvor ho v novej karte. Tam si nastav časový rozsah, dopyt/filtre a auto-refresh presne ako bežne v Kibane.</p>
+        <div style="display:flex; gap:8px;">
+          <input id="kibana-base-url" type="url" inputmode="url" placeholder="https://kibana.example.com/app/discover#/..." value="https://kibana.prod.alza.cz/" style="flex:1;" autocomplete="off">
+          <button class="btn" type="button" id="kibana-open-btn">Otvoriť v novej karte</button>
+        </div>
+      </div>
+      <div>
+        <p style="margin:0 0 8px; font-size:12px; color:var(--text-secondary); line-height:1.5;">2. Keď máš v Kibane nastavený filter, skopíruj výslednú URL z adresného riadku a vlož ju sem.</p>
+        <textarea id="kibana-result-url" rows="3" placeholder="https://kibana.example.com/app/discover#/?_g=(...)&amp;_a=(...)" style="width:100%; resize:vertical; font-family:inherit;" autocomplete="off"></textarea>
+        <div style="margin-top:8px;"><button class="btn" type="button" id="kibana-apply-btn">Načítať a použiť</button></div>
+      </div>
+      <div id="kibana-parsed-preview" hidden style="font-size:12px; line-height:1.6; background:var(--bg-secondary); border-radius:8px; padding:10px 12px;"></div>
+      <div id="kibana-index-override-block" hidden>
+        <label class="live-config-field"><span>Index / data view (potvrď alebo uprav)</span><input id="kibana-index-override" type="text" autocomplete="off"></label>
+        <p id="kibana-index-hint" style="margin:4px 0 0; font-size:11px; color:var(--text-secondary);">Kibana data view nie je to isté ako názov ES indexu — over/uprav pred použitím.</p>
+      </div>
+      <div id="kibana-link-error" class="live-error" hidden role="alert"></div>
+      <div class="modal-buttons">
+        <button class="btn" type="button" id="kibana-link-cancel">Zrušiť</button>
+        <button class="btn btn-primary" type="button" id="kibana-link-apply" disabled>Použiť tento Kibana link</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2519,6 +2573,11 @@ const state = {
   dragId: null, dragMoved: false, dragOffset: {x: 0, y: 0},
   nextId: 1,
   simulation: null,
+  telemetryDemoTimer: null,
+  liveEventSource: null,
+  liveTelemetry: null,
+  liveConnection: null,
+  liveAgeTimer: null,
   packingPercent: 7,
   dragWaypoint: null,
   viewport: { x: 0, y: 0, zoom: 1 },
@@ -3274,6 +3333,9 @@ function showEdgeTooltip(edge, mouseEvent) {
   html += `<div class="tip-row"><span class="tip-comm-name">Tok</span><strong>${Math.round(f)} j/h</strong></div>`;
   html += `<div class="tip-row"><span class="tip-comm-name">Kapacita</span><strong>${cap} j/h</strong></div>`;
   html += `<div class="tip-row"><span class="tip-comm-name">Vytížení</span><strong style="color:${utilColor(u)}">${Math.round(u * 100)} %</strong></div>`;
+  if (state.simulation.occupied?.[edge.id]) {
+    html += '<div class="tip-row"><span class="tip-comm-name">Rameno</span><strong style="color:#be185d">OBSADENÉ</strong></div>';
+  }
 
   // Per-source breakdown (available in per-source LP mode)
   if (state.simulation.mode === 'optimal' && state.simulation.flowBySource && state.simulation.commodities) {
@@ -3510,6 +3572,19 @@ function runSimulation() {
 }
 
 function clearSimulation() {
+  if (state.telemetryDemoTimer) {
+    clearInterval(state.telemetryDemoTimer);
+    state.telemetryDemoTimer = null;
+  }
+  if (state.liveEventSource) {
+    state.liveEventSource.close();
+    state.liveEventSource = null;
+  }
+  if (state.liveAgeTimer) {
+    clearInterval(state.liveAgeTimer);
+    state.liveAgeTimer = null;
+  }
+  state.liveTelemetry = null;
   state.simulation = null;
   state.highlightSourceId = null;
   hideEdgeTooltip();
@@ -3524,14 +3599,409 @@ function clearSimulation() {
     btnOpt.textContent = '⚙ Optimalizovat';
     btnOpt.classList.remove('active');
   }
+  const btnDemo = document.getElementById('btn-telemetry-demo');
+  if (btnDemo) {
+    btnDemo.textContent = '▶ Demo pohyb';
+    btnDemo.classList.remove('active');
+  }
+  const btnLive = document.getElementById('btn-live-telemetry');
+  if (btnLive) {
+    btnLive.textContent = '● Live';
+    btnLive.classList.remove('active');
+  }
   const leg = document.getElementById('sim-legend');
   if (leg) leg.style.display = 'none';
   const res = document.getElementById('sim-result');
   if (res) res.innerHTML = '<span class="empty">Rovnoměrné = každý uzel rozdělí tok stejnoměrně. Optimalizace = LP najde nejlepší rozdělení podle podílů cílů.</span>';
+  renderLiveMonitor();
   renderFloorTabs();
   renderSimDetails();
   updateExportButton();
   render();
+}
+
+function secondsSince(timestamp) {
+  const parsed = Date.parse(timestamp || '');
+  return Number.isFinite(parsed) ? Math.max(0, Math.floor((Date.now() - parsed) / 1000)) : null;
+}
+
+function formatAge(seconds) {
+  if (!Number.isFinite(seconds)) return '—';
+  if (seconds < 60) return `${seconds} s`;
+  const minutes = Math.floor(seconds / 60);
+  return `${minutes} min ${seconds % 60} s`;
+}
+
+function renderLiveMonitor() {
+  const el = document.getElementById('live-monitor');
+  const live = state.liveTelemetry;
+  if (!el) return;
+  if (!live) { el.hidden = true; el.innerHTML = ''; return; }
+  el.hidden = false;
+  const connection = live.connection || 'connecting';
+  const stateLabel = connection === 'connected' ? '● SSE pripojené' : connection === 'error' ? '● SSE chyba' : '◌ SSE pripájam';
+  const age = secondsSince(live.lastSnapshotAt || live.generatedAt);
+  const sourceLag = live.sourceLagSeconds == null ? '—' : formatAge(Number(live.sourceLagSeconds));
+  const source = live.sourceIndex ? `<span class="live-separator">·</span><span>${escapeHtml(live.sourceIndex)}</span>` : '';
+  const lastError = live.lastError ? `<span class="live-error">Chyba: ${escapeHtml(live.lastError)}</span>` : '';
+  el.innerHTML = `<span class="live-state ${connection === 'connected' ? 'ok' : connection === 'error' ? 'error' : 'waiting'}">${stateLabel}</span>` +
+    `<span class="live-separator">·</span><span>vek dát ${formatAge(age)}</span>` +
+    `<span class="live-separator">·</span><span>lag zdroja ${sourceLag}</span>` +
+    `<span class="live-separator">·</span><span>${live.occupiedCount || 0} obsadené ramená</span>` +
+    `<span class="live-separator">·</span><span>${live.unmappedCount || 0} nemapované</span>${source}${lastError}`;
+}
+
+function passiveSegmentFromEdge(startEdgeId, telemetryAgents) {
+  const edgeById = new Map(state.edges.map(edge => [edge.id, edge]));
+  const segment = [];
+  const seen = new Set();
+  let edge = edgeById.get(startEdgeId);
+  while (edge && !seen.has(edge.id)) {
+    segment.push(edge.id);
+    seen.add(edge.id);
+    const node = getNode(edge.to);
+    if (!node || telemetryAgents.has(node.label) || node.type === 'sink' || node.type === 'error') break;
+    const outgoing = state.edges.filter(candidate => candidate.from === node.id);
+    if (outgoing.length !== 1) break;
+    edge = outgoing[0];
+  }
+  return segment;
+}
+
+function applyTelemetryDemo(mappingData, tick) {
+  const entries = Object.entries(mappingData.mappings || {})
+    .filter(([, edgeId]) => state.edges.some(edge => edge.id === edgeId));
+  const telemetryAgents = new Set(entries.map(([key]) => key.split(':')[0]));
+  const flow = {}, utilization = {};
+  state.edges.forEach(edge => { flow[edge.id] = 0; utilization[edge.id] = 0; });
+  const crateCandidates = [];
+  entries.forEach(([key, id], index) => {
+    if ((index + tick) % 4 === 0) return;
+    const value = 280 + ((index * 137 + tick * 211) % 1150);
+    const edgeIds = passiveSegmentFromEdge(id, telemetryAgents);
+    edgeIds.forEach(edgeId => {
+      const edge = state.edges.find(item => item.id === edgeId);
+      flow[edgeId] += value;
+      utilization[edgeId] = flow[edgeId] / (edge.properties.capacity || 1500);
+    });
+    crateCandidates.push({ boxCode: 'DEMO-' + (index + 1), edgeIds, offset: index / Math.max(entries.length, 1) });
+  });
+  // Keep the canvas legible: show no more than 12 representative KLT crates,
+  // but sample them spread across the whole list (mappings are grouped floor
+  // by floor) instead of always the first 12 — otherwise later floors/nodes
+  // never get a single visible crate.
+  const wantCrates = Math.min(12, crateCandidates.length);
+  const crateStep = crateCandidates.length / (wantCrates || 1);
+  const demoCrates = Array.from({ length: wantCrates },
+    (_, i) => crateCandidates[Math.floor((i * crateStep + tick) % crateCandidates.length)]);
+  state.simulation = {
+    mode: 'telemetry-demo', flow, utilization,
+    throughput: Object.values(flow).reduce((sum, value) => sum + value, 0),
+    maxUtil: Math.max(0, ...Object.values(utilization)), bottleneck: null, portalFlow: {}, crossFloor: true, demoCrates
+  };
+  renderFloorTabs();
+  render();
+}
+
+async function toggleTelemetryDemo() {
+  if (state.simulation && state.simulation.mode === 'telemetry-demo') { clearSimulation(); return; }
+  clearSimulation();
+  try {
+    const response = await fetch('./sklc3-telemetry.json', { cache: 'no-store' });
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    const mappingData = await response.json();
+    const mappedCount = new Set(Object.values(mappingData.mappings || {})).size;
+    if (!mappedCount) throw new Error('není vyplněné žádné směrování');
+    let tick = 0;
+    const refresh = () => applyTelemetryDemo(mappingData, tick++);
+    refresh();
+    state.telemetryDemoTimer = setInterval(refresh, 1400);
+    const btn = document.getElementById('btn-telemetry-demo');
+    if (btn) { btn.textContent = '■ Zastaviť demo'; btn.classList.add('active'); }
+    document.getElementById('sim-legend').style.display = 'flex';
+    document.getElementById('sim-result').innerHTML =
+      '<span><strong>Demo pohyb</strong> ·</span><span>' + mappedCount + ' namapovaných smerov z Kibany</span><span style="opacity:0.6;">simulované dáta, bez API pripojenia</span>';
+    flash('▶ Demo pohybu spustené podľa uložených Kibana smerov');
+  } catch (err) {
+    flash('✗ Demo sa nepodarilo načítať: ' + err.message);
+  }
+}
+
+function applyLiveSnapshot(snapshot) {
+  const flow = {}, utilization = {};
+  const occupied = {};
+  state.edges.forEach(edge => {
+    const metric = snapshot.edgeMetrics?.[edge.id] || {};
+    const rate = Number(metric.ratePerHour) || 0;
+    flow[edge.id] = rate;
+    utilization[edge.id] = rate / (edge.properties.capacity || 1500);
+    occupied[edge.id] = metric.occupied === true;
+  });
+  const demoCrates = (snapshot.boxes || []).slice(-12).map((box, index) => ({
+    boxCode: box.boxCode || `KLT-${index + 1}`,
+    edgeIds: Array.isArray(box.edgeIds) && box.edgeIds.length ? box.edgeIds : [box.edgeId],
+    offset: index / Math.max((snapshot.boxes || []).length, 1)
+  })).filter(crate => crate.edgeIds[0]);
+  state.simulation = {
+    mode: 'live', flow, utilization,
+    throughput: Object.values(flow).reduce((sum, rate) => sum + rate, 0),
+    maxUtil: Math.max(0, ...Object.values(utilization)), bottleneck: null,
+    portalFlow: {}, crossFloor: true, demoCrates, occupied
+  };
+  state.liveTelemetry = {
+    ...(state.liveTelemetry || {}),
+    connection: state.liveTelemetry?.connection === 'error' ? 'error' : 'connected',
+    generatedAt: snapshot.generatedAt,
+    lastSnapshotAt: new Date().toISOString(),
+    sourceLagSeconds: snapshot.sourceLagSeconds,
+    latestObservedAt: snapshot.latestObservedAt,
+    occupiedCount: Object.values(occupied).filter(Boolean).length,
+    unmappedCount: (snapshot.unmappedEvents || []).length,
+    unmappedEvents: snapshot.unmappedEvents || [],
+    heartbeats: snapshot.heartbeats || {},
+    sourceIndex: state.liveConnection?.index || null,
+    lastError: null
+  };
+  const mapped = Object.values(flow).filter(rate => rate > 0).length;
+  const received = snapshot.generatedAt ? new Date(snapshot.generatedAt).toLocaleTimeString('sk-SK') : '—';
+  document.getElementById('sim-result').innerHTML =
+    `<span><strong>Live ${escapeHtml(snapshot.mode || '')}</strong> ·</span>` +
+    `<span>${mapped} aktívnych pásov</span>` +
+    `<span>${demoCrates.length} KLT</span>` +
+    `<span style="opacity:0.6;">aktualizované ${escapeHtml(received)}</span>`;
+  renderLiveMonitor();
+  renderFloorTabs();
+  renderSimDetails();
+  render();
+}
+
+async function liveResponseError(response) {
+  const fallback = `HTTP ${response.status}`;
+  try {
+    const body = await response.json();
+    return typeof body?.error === 'string' && body.error ? body.error : fallback;
+  } catch (_) {
+    return fallback;
+  }
+}
+
+async function fetchLiveConfig() {
+  const response = await fetch('/api/live/config', { cache: 'no-store' });
+  if (!response.ok) throw new Error(await liveResponseError(response));
+  return response.json();
+}
+
+async function disconnectLiveTelemetry() {
+  clearSimulation();
+  try {
+    const response = await fetch('/api/live/config', { method: 'DELETE' });
+    if (!response.ok) throw new Error(await liveResponseError(response));
+    state.liveConnection = null;
+    flash('● Live zobrazenie zastavené, Kibana filter resetovaný');
+  } catch (error) {
+    flash('✗ Live pripojenie sa nepodarilo odpojiť: ' + error.message);
+  }
+}
+
+async function startLiveTelemetry() {
+  clearSimulation();
+  const btn = document.getElementById('btn-live-telemetry');
+  try {
+    const response = await fetch('/api/live/snapshot', { cache: 'no-store' });
+    if (!response.ok) throw new Error(await liveResponseError(response));
+    const snapshot = await response.json();
+    state.liveTelemetry = { connection: 'connecting', lastSnapshotAt: null, lastError: null };
+    applyLiveSnapshot(snapshot);
+    state.liveEventSource = new EventSource('/api/live/stream');
+    state.liveEventSource.addEventListener('open', () => {
+      if (state.liveTelemetry) { state.liveTelemetry.connection = 'connected'; state.liveTelemetry.lastError = null; renderLiveMonitor(); }
+    });
+    state.liveEventSource.addEventListener('snapshot', event => {
+      try { applyLiveSnapshot(JSON.parse(event.data)); } catch (error) { console.warn('Live snapshot ignored', error); }
+    });
+    state.liveEventSource.addEventListener('error', event => {
+      let details = 'spojenie bolo prerušené; prehliadač sa pokúsi o opätovné pripojenie';
+      if (event.data) {
+        try { details = JSON.parse(event.data).error || details; } catch (_) { /* native SSE error */ }
+      }
+      if (state.liveTelemetry) { state.liveTelemetry.connection = 'error'; state.liveTelemetry.lastError = details; renderLiveMonitor(); }
+      flash('✗ Live dáta: ' + details);
+    });
+    state.liveAgeTimer = setInterval(renderLiveMonitor, 1000);
+    if (btn) { btn.textContent = '■ Zastaviť live'; btn.classList.add('active'); }
+    document.getElementById('sim-legend').style.display = 'flex';
+    flash(`● Live vizualizácia beží (${snapshot.mode || 'server'})`);
+  } catch (error) {
+    if (btn) { btn.textContent = '● Live (nedostupné)'; }
+    state.liveTelemetry = { connection: 'error', lastError: error.message };
+    renderLiveMonitor();
+    flash('✗ Live dáta sa nepodarilo pripojiť: ' + error.message);
+  }
+}
+
+async function toggleLiveTelemetry() {
+  if (state.simulation && state.simulation.mode === 'live') {
+    await disconnectLiveTelemetry();
+    return;
+  }
+  try {
+    const configured = await fetchLiveConfig();
+    if (!configured.configured) {
+      flash('✗ Live dáta nie sú nakonfigurované — nastav ELASTICSEARCH_URL/INDEX/API_KEY v server/.env');
+      return;
+    }
+    state.liveConnection = configured.connection || null;
+    await startLiveTelemetry();
+  } catch (error) {
+    state.liveTelemetry = { connection: 'error', lastError: error.message };
+    renderLiveMonitor();
+    flash('✗ Live konfigurácia nie je dostupná: ' + error.message);
+  }
+}
+
+async function showKibanaLinkModal() {
+  const modal = document.getElementById('kibana-link-modal');
+  const error = document.getElementById('kibana-link-error');
+  const preview = document.getElementById('kibana-parsed-preview');
+  const apply = document.getElementById('kibana-link-apply');
+  const hint = document.getElementById('kibana-index-hint');
+  const overrideBlock = document.getElementById('kibana-index-override-block');
+  const summary = document.getElementById('kibana-es-summary');
+  const unconfigured = document.getElementById('kibana-es-unconfigured');
+  if (error) { error.hidden = true; error.textContent = ''; }
+  if (preview) { preview.hidden = true; preview.innerHTML = ''; }
+  if (overrideBlock) overrideBlock.hidden = true;
+  if (apply) apply.disabled = true;
+  if (hint) hint.textContent = 'Kibana data view nie je to isté ako názov ES indexu — over/uprav pred použitím.';
+  const indexInput = document.getElementById('kibana-index-override');
+  if (indexInput) indexInput.value = '';
+  state.kibanaLinkParsed = null;
+
+  let configured;
+  try {
+    configured = await fetchLiveConfig();
+  } catch (err) {
+    configured = { configured: false };
+  }
+  if (configured.configured) {
+    if (summary) summary.hidden = false;
+    if (unconfigured) unconfigured.hidden = true;
+    if (indexInput) indexInput.value = configured.connection?.index || '';
+    const summaryText = document.getElementById('kibana-es-summary-text');
+    if (summaryText) summaryText.textContent = `${configured.connection?.origin || ''} · ${configured.connection?.index || ''}`;
+  } else {
+    if (summary) summary.hidden = true;
+    if (unconfigured) unconfigured.hidden = false;
+  }
+
+  if (modal) modal.hidden = false;
+  document.getElementById('kibana-base-url')?.focus();
+}
+
+function hideKibanaLinkModal() {
+  const modal = document.getElementById('kibana-link-modal');
+  if (modal) modal.hidden = true;
+}
+
+function openKibanaBaseUrl() {
+  const input = document.getElementById('kibana-base-url');
+  const raw = (input?.value || '').trim();
+  const error = document.getElementById('kibana-link-error');
+  if (error) { error.hidden = true; error.textContent = ''; }
+  let parsed;
+  try { parsed = new URL(raw); } catch {
+    if (error) { error.textContent = 'Neplatná URL adresa'; error.hidden = false; }
+    return;
+  }
+  if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password) {
+    if (error) { error.textContent = 'Neplatná URL adresa'; error.hidden = false; }
+    return;
+  }
+  window.open(parsed.toString(), '_blank', 'noopener');
+}
+
+function parseAndPreviewKibanaLink() {
+  const textarea = document.getElementById('kibana-result-url');
+  const raw = (textarea?.value || '').trim();
+  const error = document.getElementById('kibana-link-error');
+  const preview = document.getElementById('kibana-parsed-preview');
+  const apply = document.getElementById('kibana-link-apply');
+  const overrideBlock = document.getElementById('kibana-index-override-block');
+  if (error) { error.hidden = true; error.textContent = ''; }
+  if (preview) { preview.hidden = true; preview.innerHTML = ''; }
+  if (overrideBlock) overrideBlock.hidden = true;
+  if (apply) apply.disabled = true;
+  state.kibanaLinkParsed = null;
+  if (!raw) return;
+  let parsed;
+  try {
+    parsed = window.parseKibanaResultUrl(raw);
+  } catch (err) {
+    if (error) { error.textContent = 'Nepodarilo sa spracovať Kibana link: ' + err.message; error.hidden = false; }
+    return;
+  }
+  state.kibanaLinkParsed = parsed;
+  if (preview) {
+    const rows = [];
+    if (parsed.timeRange) rows.push(`<div><strong>Časový rozsah:</strong> ${escapeHtml(parsed.timeRange.from)} → ${escapeHtml(parsed.timeRange.to)}</div>`);
+    if (parsed.refreshInterval) {
+      rows.push(parsed.refreshInterval.pause
+        ? '<div><strong>Auto-refresh:</strong> vypnuté v Kibane — appka použije vlastný predvolený interval</div>'
+        : `<div><strong>Auto-refresh:</strong> ${(parsed.refreshInterval.value / 1000).toFixed(1)} s</div>`);
+    }
+    if (parsed.query) rows.push(`<div><strong>Dopyt (${escapeHtml(parsed.query.language)}):</strong> ${escapeHtml(parsed.query.queryString || '(prázdny)')} <span style="opacity:0.7;">— aplikuje sa ako približné vyhľadávanie, nie presne ako v Kibane</span></div>`);
+    rows.push(`<div><strong>Filtre:</strong> ${parsed.filters.length}</div>`);
+    if (!parsed.timeRange && !parsed.refreshInterval && !parsed.query && !parsed.filters.length) {
+      rows.length = 0;
+      rows.push('<div>V linku sa nenašiel žiadny rozpoznateľný stav.</div>');
+    }
+    preview.innerHTML = rows.join('');
+    preview.hidden = false;
+  }
+  if (parsed.dataViewId) {
+    // Kibana's data view id is a saved-object id, never the same string as
+    // an ES index/alias name, so this can never be "resolved" client-side —
+    // purely informational. The index field already holds the currently
+    // configured index (prefilled in showKibanaLinkModal); Apply uses it as
+    // typed, so this never blocks applying the link.
+    const indexInput = document.getElementById('kibana-index-override');
+    const hint = document.getElementById('kibana-index-hint');
+    if (hint) {
+      hint.textContent = `Kibana data view id "${parsed.dataViewId}" nie je názov ES indexu — appka použije index nižšie ("${indexInput?.value || ''}"). Uprav ho, ak vieš, že tento link patrí k inému zdroju.`;
+    }
+    if (overrideBlock) overrideBlock.hidden = false;
+  }
+  if (apply) apply.disabled = false;
+}
+
+async function applyKibanaLink() {
+  const parsed = state.kibanaLinkParsed;
+  const error = document.getElementById('kibana-link-error');
+  const apply = document.getElementById('kibana-link-apply');
+  if (error) { error.hidden = true; error.textContent = ''; }
+  if (!parsed) return;
+  const indexInput = document.getElementById('kibana-index-override');
+  const indexValue = (indexInput?.value || '').trim();
+  if (apply) apply.disabled = true;
+  try {
+    const body = {
+      timeRange: parsed.timeRange || undefined,
+      refreshInterval: parsed.refreshInterval || undefined,
+      query: parsed.query || undefined,
+      filters: parsed.filters && parsed.filters.length ? parsed.filters : undefined,
+      index: indexValue || undefined
+    };
+    const response = await fetch('/api/live/query', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
+    if (!response.ok) throw new Error(await liveResponseError(response));
+    hideKibanaLinkModal();
+    await startLiveTelemetry();
+  } catch (err) {
+    if (error) { error.textContent = err.message; error.hidden = false; }
+  } finally {
+    if (apply) apply.disabled = false;
+  }
 }
 
 // Spodní panel už needituje cíle ani balení — cíle se nastavují přes „Matice
@@ -3699,25 +4169,40 @@ function renderSimDetails() {
 
   // --- Top edges by utilization ---
   const edgeRows = state.edges
-    .map(e => ({ e, u: sim.utilization[e.id] || 0, f: sim.flow[e.id] || 0 }))
-    .filter(x => x.u > 0)
+    .map(e => ({ e, u: sim.utilization[e.id] || 0, f: sim.flow[e.id] || 0, occupied: !!sim.occupied?.[e.id] }))
+    .filter(x => x.u > 0 || x.occupied)
     .sort((a, b) => b.u - a.u)
     .slice(0, 5);
 
   const topEdgesHtml = edgeRows.length === 0
     ? '<div class="sd-empty">žádný tok</div>'
-    : edgeRows.map(({ e, u, f }) => {
+    : edgeRows.map(({ e, u, f, occupied }) => {
         const from = getNode(e.from);
         const to = getNode(e.to);
         const label = (from?.label || '?') + ' → ' + (to?.label || '?');
         const color = u > 1 ? '#dc2626' : (u > 0.85 ? '#ea580c' : (u > 0.6 ? '#d97706' : '#65a30d'));
         const widthPct = Math.min(100, u * 100);
-        return `<div class="sd-row" title="${escapeHtml(label)} · ${Math.round(f)} j/h">
+        return `<div class="sd-row" title="${escapeHtml(label)} · ${Math.round(f)} j/h${occupied ? ' · OBSADENÉ RAMENO' : ''}">
           <span class="sd-label">${escapeHtml(label)}</span>
           <span class="sd-bar"><span class="sd-bar-fill" style="width:${widthPct.toFixed(1)}%; background:${color};"></span></span>
-          <span class="sd-value" style="color:${color}">${Math.round(u * 100)} %</span>
+          <span class="sd-value" style="color:${occupied ? '#be185d' : color}">${occupied ? 'OBS' : Math.round(u * 100) + ' %'}</span>
         </div>`;
       }).join('');
+
+  const live = state.liveTelemetry;
+  const unmappedEvents = live?.unmappedEvents || [];
+  const liveIssuesHtml = sim.mode !== 'live' ? '' : `<div class="sd-section" style="grid-column: 1 / -1;">
+      <h4>Live udalosti vyžadujúce kontrolu</h4>
+      ${unmappedEvents.length === 0
+        ? '<div class="sd-empty">žiadne nemapované ani nejednoznačné udalosti</div>'
+        : unmappedEvents.slice(-8).reverse().map(event => {
+            const when = event.observedAt ? new Date(event.observedAt).toLocaleTimeString('sk-SK') : '—';
+            const state = event.reason === 'ambiguous-mapping' ? 'nejednoznačné smerovanie' : 'bez mapovania';
+            const edges = Array.isArray(event.edgeIds) ? ` (${event.edgeIds.join(', ')})` : '';
+            const detail = event.template ? `${state} · ${event.kind || 'udalosť'} · ${event.template}` : `${state} · ${event.kind || 'udalosť'}`;
+            return `<div class="sd-floor-row" title="${escapeHtml(detail)}"><span><strong>${escapeHtml(event.agent || '?')}:${escapeHtml(event.direction ?? '?')}</strong> · ${escapeHtml(state + edges)}</span><span>${escapeHtml(when)}</span></div>`;
+          }).join('')}
+    </div>`;
 
   // --- Per-floor utilization (max + average) ---
   const floorStats = {};
@@ -3809,7 +4294,7 @@ function renderSimDetails() {
   el.innerHTML = `
     <div class="sd-grid">
       <div class="sd-section">
-        <h4>Top 5 hran (max vytížení)</h4>
+        <h4>${sim.mode === 'live' ? 'Live ramená (OBS = obsadené)' : 'Top 5 hran (max vytížení)'}</h4>
         ${topEdgesHtml}
       </div>
       <div class="sd-section">
@@ -3821,6 +4306,7 @@ function renderSimDetails() {
         ${perSourceHtml}
       </div>
       ${warningsHtml}
+      ${liveIssuesHtml}
     </div>
   `;
 }
@@ -5264,7 +5750,7 @@ function snapToAnchorGrid(node, side, offset) {
 // edge that doesn't have them yet, based on the target node's position.
 // Each endpoint is target-aligned (anchor moves to where the other endpoint is),
 // clamped to side bounds, then snapped to the nearest grid anchor.
-// Used after CZLC4 load and via the "Auto-uložit kotvy" bulk action.
+// Used after a layout load and via the "Auto-uložit kotvy" bulk action.
 function autoAnchorAllEdges() {
   let changed = 0;
   state.edges.forEach(e => {
@@ -5754,10 +6240,18 @@ function _glBgImage(url) {
 // Animace pásů (chevrony) v sim módu. Canvas nemá CSS animaci jako SVG (.chev-flow),
 // proto fázi posouváme v rAF smyčce: 22 px za 0,8 s (= CSS chevron-flow).
 let _chevronPhase = 0;
+// Doba (ms), za kterou KLT krabice ujede JEDNU hranu pásu — nezávisle na
+// _chevronPhase (ta je jen rychlá 0,9s smyčka pro šipky toku). Dřív se
+// _chevronPhase používala i pro pohyb krabic přes celý (víceúsekový) pasivní
+// segment, takže krabice na dlouhém segmentu proletěla všemi hranami za
+// stejných 0,9 s jako krátký úsek — pohyb pak vypadal mnohonásobně rychlejší.
+const CRATE_MS_PER_EDGE = 2600;
+let _cratePhase = 0;
 let _simAnimRAF = null;
 function _simAnimTick(ts) {
-  if (!(state.useCanvas && state.simulation)) { _simAnimRAF = null; _chevronPhase = 0; return; }
+  if (!(state.useCanvas && state.simulation)) { _simAnimRAF = null; _chevronPhase = 0; _cratePhase = 0; return; }
   _chevronPhase = (ts % 900) / 900;   // 0..1 fáze toku (cyklus ~0,9 s)
+  _cratePhase = ts / CRATE_MS_PER_EDGE;  // roste plynule, jednotka = 1 hrana
   drawCanvasScene();
   _simAnimRAF = requestAnimationFrame(_simAnimTick);
 }
@@ -5806,6 +6300,28 @@ function _flowMarks(pts, start, step, L) {
   }
   return out;
 }
+
+// Small blue KLT crate used by the telemetry demo. It follows the conveyor
+// direction so the later live integration can reuse the same visual.
+function drawKltCrate(ctx, point) {
+  ctx.save();
+  ctx.translate(point.x, point.y);
+  ctx.rotate(Math.atan2(point.uy, point.ux));
+  ctx.fillStyle = 'rgba(0,0,0,0.25)';
+  ctx.fillRect(-6, -3, 13, 9);
+  ctx.fillStyle = '#2c83b5';
+  ctx.fillRect(-7, -6, 14, 9);
+  ctx.fillStyle = '#74c0e8';
+  ctx.fillRect(-5.5, -4.5, 11, 2);
+  ctx.strokeStyle = '#093e61';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(-7, -6, 14, 9);
+  ctx.beginPath();
+  ctx.moveTo(-3, -6); ctx.lineTo(-3, 3);
+  ctx.moveTo(2, -6); ctx.lineTo(2, 3);
+  ctx.stroke();
+  ctx.restore();
+}
 function drawCanvasScene() {
   const cv = getGlCanvas();
   const W = canvasWrap.clientWidth, H = canvasWrap.clientHeight;
@@ -5830,6 +6346,23 @@ function drawCanvasScene() {
   const ids = new Set(floorNodes.map(n => n.id));
   const floorEdges = state.edges.filter(e => ids.has(e.from) && ids.has(e.to));
   const sim = state.simulation;
+  // Which edge of a derived passive segment currently carries each demo KLT.
+  // Progress is distributed over the segment's edges; this is intentionally
+  // independent of whether intermediate joiners emit their own telemetry.
+  const demoCratesByEdge = new Map();
+  if (sim && (sim.mode === 'telemetry-demo' || sim.mode === 'live') && Array.isArray(sim.demoCrates)) {
+    sim.demoCrates.forEach(crate => {
+      // Constant per-edge speed regardless of chain length (see CRATE_MS_PER_EDGE):
+      // crate.offset spreads different crates' start position along their own chain.
+      const n = crate.edgeIds.length;
+      const scaled = (_cratePhase + crate.offset * n) % n;
+      const edgeIndex = Math.min(n - 1, Math.floor(scaled));
+      const edgeId = crate.edgeIds[edgeIndex];
+      const list = demoCratesByEdge.get(edgeId) || [];
+      list.push({ progress: scaled - edgeIndex });
+      demoCratesByEdge.set(edgeId, list);
+    });
+  }
   // Plná kvalita i během interakce (LOD vypnuto). Vykreslení je dost rychlé
   // (chevrony dávkově, jeden stroke), takže pohyb zůstává svižný bez ztráty
   // vzhledu. Kdyby na hodně velkých sítích pohyb zadrhával, dá se sem vrátit
@@ -5884,13 +6417,14 @@ function drawCanvasScene() {
     const utilOn = sim && sim.utilization && sim.utilization[edge.id] !== undefined;
     const u = utilOn ? sim.utilization[edge.id] : 0;
     const flowColor = utilOn ? utilColor(u) : null;
+    const isOccupied = !!sim?.occupied?.[edge.id];
     const L = _polyLen(pts);
     ctx.save();
     if (hlEdges && !hlEdges.has(edge.id)) ctx.globalAlpha = 0.15;
     if (selEdge) { trace(); ctx.lineWidth = 2 * HW + 8; ctx.strokeStyle = 'rgba(27,122,205,0.25)'; ctx.stroke(); }
     // 1) červené boční rámy (širší spodní vrstva) → pás tmavě šedý (v simulaci
     //    obarvený dle utilizace), zaoblené rohy; červená prosvítá po stranách
-    trace(); ctx.lineWidth = 2 * HW + 6; ctx.strokeStyle = '#CC2127'; ctx.stroke();
+    trace(); ctx.lineWidth = 2 * HW + 6; ctx.strokeStyle = isOccupied ? '#be185d' : '#CC2127'; ctx.stroke();
     trace(); ctx.lineWidth = 2 * HW;     ctx.strokeStyle = utilOn ? flowColor : '#3f4448'; ctx.stroke();
     if (!fast) {
       // 1b) černé perforační tečkování na červených rámech (obě strany), jednoprůchodově
@@ -5938,13 +6472,17 @@ function drawCanvasScene() {
         ctx.moveTo(cx - AR * ux + AR * uy, cy - AR * uy - AR * ux); ctx.lineTo(cx, cy); ctx.lineTo(cx - AR * ux - AR * uy, cy - AR * uy + AR * ux);
       }
       ctx.stroke();
+      const demoCrates = demoCratesByEdge.get(edge.id) || [];
+      demoCrates.forEach(crate => {
+        if (L > 18) drawKltCrate(ctx, _polyAt(pts, Math.max(4, Math.min(L - 4, L * crate.progress))));
+      });
       // 4) info pilulka
       if (utilOn) {
-        const labelText = Math.round(sim.flow[edge.id] || 0) + ' · ' + Math.round(u * 100) + '%';
+        const labelText = (isOccupied ? 'OBS · ' : '') + Math.round(sim.flow[edge.id] || 0) + ' · ' + Math.round(u * 100) + '%';
         ctx.font = '600 11px "IBM Plex Sans", system-ui, sans-serif';
         const lw = labelText.length * 6.4 + 16;
         glRoundRect(ctx, geo.lx - lw / 2, geo.ly - 24, lw, 18, 6); ctx.fillStyle = '#16191d'; ctx.fill();
-        ctx.fillStyle = flowColor; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(labelText, geo.lx, geo.ly - 15);
+        ctx.fillStyle = isOccupied ? '#f9a8d4' : flowColor; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(labelText, geo.lx, geo.ly - 15);
       } else if (edge.label) {
         ctx.font = '500 11px "IBM Plex Mono", monospace';
         const lw = edge.label.length * 6.4 + 14;
@@ -6286,7 +6824,8 @@ function render() {
     const rails = document.createElementNS(SVG_NS, 'path');
     rails.setAttribute('d', d);
     rails.setAttribute('fill', 'none');
-    rails.setAttribute('stroke', '#c8202c');
+    const isOccupied = !!state.simulation?.occupied?.[edge.id];
+    rails.setAttribute('stroke', isOccupied ? '#be185d' : '#c8202c');
     rails.setAttribute('stroke-width', '20');
     rails.setAttribute('stroke-linecap', 'butt');
     rails.setAttribute('stroke-linejoin', 'miter');
@@ -6384,7 +6923,7 @@ function render() {
     if (state.simulation && state.simulation.flow[edge.id] !== undefined) {
       const f = state.simulation.flow[edge.id];
       const u = state.simulation.utilization[edge.id];
-      labelText = Math.round(f) + ' · ' + Math.round(u * 100) + '%';
+      labelText = (isOccupied ? 'OBS · ' : '') + Math.round(f) + ' · ' + Math.round(u * 100) + '%';
     }
 
     if (labelText) {
@@ -6403,7 +6942,7 @@ function render() {
       txt.setAttribute('font-size', '11');
       txt.setAttribute('font-family', "'IBM Plex Mono', monospace");
       txt.setAttribute('font-weight', '500');
-      txt.setAttribute('fill', state.simulation ? utilColor(state.simulation.utilization[edge.id] || 0) : '#fffdf9');
+      txt.setAttribute('fill', isOccupied ? '#f9a8d4' : (state.simulation ? utilColor(state.simulation.utilization[edge.id] || 0) : '#fffdf9'));
       txt.style.pointerEvents = 'none';
       txt.textContent = labelText;
       edgeG.appendChild(txt);
@@ -7702,6 +8241,24 @@ document.getElementById('btn-optimize').addEventListener('click', () => {
   else { clearSimulation(); runOptimization(); }
 });
 
+document.getElementById('btn-telemetry-demo').addEventListener('click', toggleTelemetryDemo);
+document.getElementById('btn-live-telemetry').addEventListener('click', toggleLiveTelemetry);
+
+document.getElementById('btn-kibana-link').addEventListener('click', showKibanaLinkModal);
+document.getElementById('kibana-open-btn').addEventListener('click', openKibanaBaseUrl);
+document.getElementById('kibana-apply-btn').addEventListener('click', parseAndPreviewKibanaLink);
+document.getElementById('kibana-link-close').addEventListener('click', hideKibanaLinkModal);
+document.getElementById('kibana-link-cancel').addEventListener('click', hideKibanaLinkModal);
+document.getElementById('kibana-link-apply').addEventListener('click', applyKibanaLink);
+document.getElementById('kibana-link-modal').addEventListener('click', event => {
+  if (event.target.id === 'kibana-link-modal') hideKibanaLinkModal();
+});
+document.getElementById('kibana-index-override').addEventListener('input', () => {
+  if (!state.kibanaLinkParsed) return;
+  const apply = document.getElementById('kibana-link-apply');
+  if (apply) apply.disabled = !document.getElementById('kibana-index-override').value.trim();
+});
+
 document.getElementById('btn-export-sim').addEventListener('click', exportSimulationCsv);
 document.getElementById('btn-export-assignment').addEventListener('click', exportAssignmentCsv);
 
@@ -7769,6 +8326,7 @@ document.getElementById('file-input').addEventListener('change', async e => {
       // Defer the flash so it appears after the import dialog closes
       setTimeout(() => flash(`⚠ Opraveno ${renamed} duplicitních ID hran — bez toho by simulace v některých větvích nefungovala`), 800);
     }
+    validateNetworkData(data);
   } catch (err) {
     flash('Chyba importu: ' + err.message);
     e.target.value = '';
@@ -7814,7 +8372,7 @@ document.getElementById('file-input').addEventListener('change', async e => {
         ? Object.assign({ groups: [], nextGroupId: 1, sinks: {} }, data.calcMatrixSinks)
         : { groups: [], nextGroupId: 1, sinks: {} };
       // nextId musí vycházet z max. číselného suffixu existujících ID, ne z počtu
-      // uzlů+hran — při děrách v číslování (CZLC4 má ID až n931/e932, ale jen ~500
+      // uzlů+hran — při děrách v číslování (layout může mít vysoká ID, ale málo
       // prvků) by jinak vznikl nízký nextId a následný "přidat jako patro" by
       // přiděloval kolizní ID, čímž by rozbil hrany už importovaných pater.
       const allImportIds = [...state.nodes.map(n => n.id), ...state.edges.map(e => e.id)];
@@ -7927,6 +8485,10 @@ document.getElementById('btn-clear').addEventListener('click', () => {
   });
 })();
 
+// Legacy GitHub versioning is intentionally disabled while SKLC3 is distributed
+// as a local JSON file. It is retained only as historical source until the next
+// cleanup pass, and is never executed.
+if (false) {
 // Kanonická skica CZLC4 žije v PRIVÁTNÍM repu `czlc4-mapa` (data-only). Protože je
 // private, čtení i zápis jdou přes GitHub Contents API s tokenem (raw URL ani
 // /contents bez tokenu na private repu nefungují). Online-first: stáhne nejnovější
@@ -8404,6 +8966,96 @@ async function checkCZLC4Update() {
 // spusť na pozadí krátce po startu (nesoupeří s prvním renderem)
 setTimeout(checkCZLC4Update, 3000);
 
+}
+
+const SKLC3_LOCAL_URL = './sklc3.json';
+
+function validateNetworkData(data) {
+  if (!data || typeof data !== 'object') throw new Error('soubor neobsahuje JSON objekt');
+  if (!Array.isArray(data.nodes) || !Array.isArray(data.edges)) {
+    throw new Error('soubor neobsahuje pole nodes/edges');
+  }
+  const floors = Array.isArray(data.floors) && data.floors.length
+    ? data.floors
+    : [{ id: 'f1', name: '1NP', order: 0 }];
+  const floorIds = new Set();
+  floors.forEach(floor => {
+    if (!floor || typeof floor.id !== 'string' || !floor.id) throw new Error('každé patro musí mít unikátní ID');
+    if (floorIds.has(floor.id)) throw new Error('duplicitní ID patra: ' + floor.id);
+    floorIds.add(floor.id);
+  });
+  const nodeIds = new Set();
+  data.nodes.forEach(node => {
+    if (!node || typeof node.id !== 'string' || !node.id) throw new Error('každý uzel musí mít unikátní ID');
+    if (nodeIds.has(node.id)) throw new Error('duplicitní ID uzla: ' + node.id);
+    if (node.floor && !floorIds.has(node.floor)) throw new Error('uzel ' + node.id + ' odkazuje na neznáme patro ' + node.floor);
+    nodeIds.add(node.id);
+  });
+  const edgeIds = new Set();
+  data.edges.forEach(edge => {
+    if (!edge || typeof edge.id !== 'string' || !edge.id) throw new Error('každý dopravník musí mať ID');
+    if (edgeIds.has(edge.id)) throw new Error('duplicitní ID dopravníka: ' + edge.id);
+    if (!nodeIds.has(edge.from) || !nodeIds.has(edge.to)) {
+      throw new Error('dopravník ' + edge.id + ' odkazuje na neexistujúci uzel');
+    }
+    edgeIds.add(edge.id);
+  });
+  return data;
+}
+
+function applySKLC3(data) {
+  const normalized = validateNetworkData(JSON.parse(JSON.stringify(data)));
+  state.floors = normalized.floors && normalized.floors.length
+    ? normalized.floors
+    : [{ id: 'f1', name: '1NP', order: 0 }];
+  state.activeFloor = state.floors.some(f => f.id === normalized.activeFloor)
+    ? normalized.activeFloor
+    : state.floors[0].id;
+  state.nodes = normalized.nodes.map(n => ({ floor: state.floors[0].id, ...n, properties: n.properties || {} }));
+  state.edges = normalized.edges.map(e => ({ ...e, properties: e.properties || {}, waypoints: e.waypoints || [] }));
+  state.dividers = Array.isArray(normalized.dividers) ? normalized.dividers : [];
+  state.nextDividerId = normalized.nextDividerId || (state.dividers.length + 1);
+  state.calcMatrix = (normalized.calcMatrix && typeof normalized.calcMatrix === 'object')
+    ? Object.assign({ totalSJL: 100000, defaultHours: 20, groups: [], nextGroupId: 1, sources: {} }, normalized.calcMatrix)
+    : { totalSJL: 100000, defaultHours: 20, groups: [], nextGroupId: 1, sources: {} };
+  state.calcMatrixSinks = (normalized.calcMatrixSinks && typeof normalized.calcMatrixSinks === 'object')
+    ? Object.assign({ groups: [], nextGroupId: 1, sinks: {} }, normalized.calcMatrixSinks)
+    : { groups: [], nextGroupId: 1, sinks: {} };
+  const ids = [...state.nodes.map(n => n.id), ...state.edges.map(e => e.id)];
+  let maxId = 0;
+  ids.forEach(id => { const match = /(\d+)$/.exec(id); if (match) maxId = Math.max(maxId, Number(match[1])); });
+  state.nextId = normalized.nextId || maxId + 1;
+  let maxFloorId = 0;
+  state.floors.forEach(f => { const match = /(\d+)$/.exec(f.id); if (match) maxFloorId = Math.max(maxFloorId, Number(match[1])); });
+  state.nextFloorId = normalized.nextFloorId || maxFloorId + 1;
+  state.selected = null;
+  state.selectedNodes = new Set();
+  renderFloorTabs();
+  invalidateNodeIndex();
+  autoAnchorAllEdges();
+  render(); updateProps(); updateCounter(); renderShares();
+  fitToContent();
+  flash('✓ SKLC3 načteno · ' + state.nodes.length + ' uzlů, ' + state.edges.length + ' hran, ' + state.floors.length + ' patra');
+}
+
+async function loadSKLC3() {
+  if ((state.nodes.length || state.edges.length) && !confirm('Nahradit aktuální obsah layoutem SKLC3?')) return;
+  try {
+    const response = await fetch(SKLC3_LOCAL_URL, { cache: 'no-store' });
+    if (!response.ok) throw new Error('lokální sklc3.json: HTTP ' + response.status);
+    const data = await response.json();
+    const renamed = dedupeEdgeIds(data);
+    validateNetworkData(data);
+    pushUndo();
+    applySKLC3(data);
+    if (renamed > 0) flash('⚠ SKLC3 malo duplicitní ID hran; ' + renamed + ' bolo opravených.');
+  } catch (err) {
+    flash('✗ Nepodařilo se načíst SKLC3: ' + err.message);
+  }
+}
+
+document.getElementById('btn-load-sklc3').addEventListener('click', loadSKLC3);
+
 // Welcome card — shown when the canvas is empty as an onboarding step
 function updateWelcomeCard() {
   const card = document.getElementById('welcome-card');
@@ -8411,8 +9063,8 @@ function updateWelcomeCard() {
   const isEmpty = state.nodes.length === 0 && state.edges.length === 0;
   card.hidden = !isEmpty;
 }
-document.getElementById('welcome-load-czlc4').addEventListener('click', () => {
-  document.getElementById('btn-load-czlc4').click();
+document.getElementById('welcome-load-sklc3').addEventListener('click', () => {
+  document.getElementById('btn-load-sklc3').click();
 });
 document.getElementById('welcome-import').addEventListener('click', () => {
   document.getElementById('btn-import').click();
@@ -9601,8 +10253,10 @@ window.addEventListener('keydown', e => {
     const bm = document.getElementById('bulk-actions-modal');
     const cm = document.getElementById('calc-matrix-modal');
     const cms = document.getElementById('calc-matrix-sinks-modal');
+    const klm = document.getElementById('kibana-link-modal');
     if (cms && !cms.hidden) hideCalcMatrixSinksModal();
     else if (cm && !cm.hidden) hideCalcMatrixModal();
+    else if (klm && !klm.hidden) hideKibanaLinkModal();
     else if (sm && !sm.hidden) hideShortcutsModal();
     else if (bm && !bm.hidden) hideBulkActionsModal();
   }
@@ -9784,5 +10438,6 @@ window.addEventListener('keydown', e => {
 })();
 </script>
   <script src="tauri-integration.js"></script>
+  <script type="module" src="kibana-rison.mjs"></script>
 </body>
 </html>

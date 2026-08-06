@@ -1,0 +1,47 @@
+{
+  "timeRange": {
+    "from": "now-15m",
+    "to": "now"
+  },
+  "filters": [
+    {
+      "negate": false,
+      "disabled": false,
+      "query": {
+        "bool": {
+          "filter": [
+            {
+              "bool": {
+                "filter": [
+                  {
+                    "bool": {
+                      "filter": [
+                        {
+                          "bool": {
+                            "filter": [
+                              {
+                                "bool": {
+                                  "filter": [
+                                    {
+                                      "match_phrase": {
+                                        "level": "ERROR"
+                                      }
+                                    }
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

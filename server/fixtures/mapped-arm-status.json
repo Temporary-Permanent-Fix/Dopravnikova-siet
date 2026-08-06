@@ -1,0 +1,10 @@
+{
+  "@timestamp": "2026-07-15T08:13:05.500Z",
+  "message": "Arm status changed (\"7:Occupied,11:Open,12:Occupied,99:Open\")",
+  "messageTemplate": "Arm status changed ({Arms})",
+  "messageKeys": ["Arms"],
+  "messageParams": { "Arms": "\"7:Occupied,11:Open,12:Occupied,99:Open\"" },
+  "level": "DEBUG",
+  "logger": "RUR.TMS.Agent.Core.Controller.ArmStatus.BinaryArmStatusService",
+  "headers": { "x-AgentName": "DS02S04" }
+}

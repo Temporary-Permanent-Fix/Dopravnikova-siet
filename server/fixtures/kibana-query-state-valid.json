@@ -1,0 +1,8 @@
+{
+  "timeRange": { "from": "now-15m", "to": "now" },
+  "refreshInterval": { "pause": false, "value": 5000 },
+  "query": { "language": "kuery", "queryString": "AgentName:DS24S26" },
+  "filters": [
+    { "negate": false, "disabled": false, "query": { "match_phrase": { "namespace_name": "logistics" } } }
+  ]
+}

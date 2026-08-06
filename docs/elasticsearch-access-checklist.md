@@ -56,6 +56,11 @@ Zodpovedajú premenným už pripraveným v `server/.env.example`:
 | `ELASTICSEARCH_URL` | Base URL clusteru | `https://elasticsearch.internal.example` |
 | `ELASTICSEARCH_API_KEY` | Read-only API kľúč vo formáte `id:api_key` alebo zakódovaný base64 | *(tajomstvo, pozri sekciu 3)* |
 | `ELASTICSEARCH_INDEX` | Stabilný alias/data stream, z ktorého sa čítajú Kibana eventy | `sklc3-events` |
+| `ELASTICSEARCH_TIMESTAMP_FIELD` | Pole pre časový filter/sort. Nastav, iba ak Kibana Discover pre tento index ukazuje iné pole ako `@timestamp` (over cez `_mapping`, pozri `kibana-live-validation.md`) | `@timestamp` (predvolené) alebo napr. `time_key` |
+| `LIVE_WINDOW_SECONDS` | Časové okno pre výpočet toku | `60` |
+| `LIVE_POLL_INTERVAL_MS` | Interval SSE snapshotov (min. 1000 ms) | `5000` |
+| `ELASTICSEARCH_TIMEOUT_MS` | Timeout jedného read requestu (min. 1000 ms) | `8000` |
+| `ELASTICSEARCH_RESULT_LIMIT` | Horný limit eventov v jednom okne (1–10000) | `1000` |
 | `PORT` | Port lokálneho servera (nesúvisí s ES, len pre úplnosť) | `5173` |
 
 Všetky premenné sa nastavujú v `server/.env` (lokálna kópia
@@ -90,15 +95,35 @@ shellu v čitateľnej podobe v zdieľanom termináli):
 
 ```bash
 export ELASTICSEARCH_URL="https://elasticsearch.internal.example"
-export ELASTICSEARCH_API_KEY="id:api_key"      # formát podľa ES API key auth
+export ELASTICSEARCH_API_KEY="id:api_key"      # pozri poznámku nižšie o formáte
 export ELASTICSEARCH_INDEX="sklc3-events"
 ```
+
+> **Pozor na formát `ELASTICSEARCH_API_KEY`.** Kibana pri vytvorení kľúča
+> ponúka buď surovú dvojicu `id:api_key`, alebo rovno pole `encoded`, ktoré
+> je **už base64** (tvar bez `:`). `server/index.mjs`
+> (`authorizationHeader()`) to rozlišuje sám — ak hodnota obsahuje `:`,
+> zakóduje ju do base64; ak nie, použije ju priamo. Nižšie uvedené príkazy
+> robia to isté, aby si kľúč pri kontrole **necodoval dvakrát** (dvojité
+> base64 kódovanie vygeneruje neplatnú `Authorization` hlavičku a Elastic
+> vráti `401`, nie chybu o právach):
+>
+> ```bash
+> if [[ "$ELASTICSEARCH_API_KEY" == *:* ]]; then
+>   AUTH_HEADER="ApiKey $(printf '%s' "$ELASTICSEARCH_API_KEY" | base64)"
+> else
+>   AUTH_HEADER="ApiKey $ELASTICSEARCH_API_KEY"
+> fi
+> ```
+>
+> Spusti tento blok raz v shelli pred príkazmi 4.1–4.4 a v nich používaj
+> `$AUTH_HEADER` namiesto opakovaného kódovania.
 
 ### 4.1 Over dostupnosť clusteru (bez potreby indexových práv)
 
 ```bash
 curl -s -o /dev/null -w "%{http_code}\n" \
-  -H "Authorization: ApiKey $(printf '%s' "$ELASTICSEARCH_API_KEY" | base64)" \
+  -H "Authorization: $AUTH_HEADER" \
   "$ELASTICSEARCH_URL/"
 ```
 
@@ -108,7 +133,7 @@ Očakávaný výsledok: `200`.
 
 ```bash
 curl -s \
-  -H "Authorization: ApiKey $(printf '%s' "$ELASTICSEARCH_API_KEY" | base64)" \
+  -H "Authorization: $AUTH_HEADER" \
   "$ELASTICSEARCH_URL/$ELASTICSEARCH_INDEX/_count"
 ```
 
@@ -116,7 +141,7 @@ Očakávaný výsledok: JSON s `"count"` a bez chyby autorizácie.
 
 ```bash
 curl -s -o /dev/null -w "%{http_code}\n" \
-  -H "Authorization: ApiKey $(printf '%s' "$ELASTICSEARCH_API_KEY" | base64)" \
+  -H "Authorization: $AUTH_HEADER" \
   -H "Content-Type: application/json" \
   -X POST "$ELASTICSEARCH_URL/$ELASTICSEARCH_INDEX/_doc" \
   -d '{"test": true}'
@@ -129,7 +154,7 @@ Očakávaný výsledok: `403 Forbidden` — ak kľúč dokáže zapísať dokume
 
 ```bash
 curl -s -o /dev/null -w "%{http_code}\n" \
-  -H "Authorization: ApiKey $(printf '%s' "$ELASTICSEARCH_API_KEY" | base64)" \
+  -H "Authorization: $AUTH_HEADER" \
   "$ELASTICSEARCH_URL/_all/_count"
 ```
 
@@ -146,7 +171,7 @@ anonymizované príklady):
 
 ```bash
 curl -s \
-  -H "Authorization: ApiKey $(printf '%s' "$ELASTICSEARCH_API_KEY" | base64)" \
+  -H "Authorization: $AUTH_HEADER" \
   -H "Content-Type: application/json" \
   "$ELASTICSEARCH_URL/$ELASTICSEARCH_INDEX/_search" \
   -d '{
@@ -170,3 +195,6 @@ curl -s \
 - [ ] Kľúč je uložený v secrets manažéri s nastaveným dátumom rotácie.
 - [ ] `curl` kontrolné príkazy zo sekcie 4 boli spustené a výsledky
       zodpovedajú očakávaniam.
+- [ ] `node --test server/*.test.mjs` prešiel vrátane mock snapshot/SSE testu.
+- [ ] Live validácia z `kibana-live-validation.md` potvrdila tri template a
+      výsledok pre `C3PO:6` a `BPO01:6`.

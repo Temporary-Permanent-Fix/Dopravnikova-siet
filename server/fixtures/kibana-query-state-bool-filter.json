@@ -1,0 +1,18 @@
+{
+  "timeRange": { "from": "now-15m", "to": "now" },
+  "filters": [
+    {
+      "negate": false,
+      "disabled": false,
+      "query": {
+        "bool": {
+          "should": [
+            { "match_phrase": { "level": "ERROR" } },
+            { "match_phrase": { "level": "warn" } }
+          ],
+          "minimum_should_match": 1
+        }
+      }
+    }
+  ]
+}

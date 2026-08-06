@@ -1,0 +1,10 @@
+{
+  "name": "sklc3-live-visualization",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node server/index.mjs",
+    "start": "node server/index.mjs",
+    "test": "node --test server/*.test.mjs"
+  }
+}

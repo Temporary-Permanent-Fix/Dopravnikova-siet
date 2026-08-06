@@ -1,0 +1,14 @@
+{
+  "@timestamp": "2026-07-15T08:12:41.560Z",
+  "message": "Message received (messageId=\"e943bbf4-02a0-4864-be57-fa35cdc9f9d1\"; clientId=\"OBIWAN-01\"; topic=\"rur/plc/OBIWAN/occupation\";)",
+  "messageTemplate": "Message received (messageId={Id}; clientId={ClientId}; topic={Topic};)",
+  "messageKeys": ["Id", "ClientId", "Topic"],
+  "messageParams": {
+    "Id": "\"e943bbf4-02a0-4864-be57-fa35cdc9f9d1\"",
+    "ClientId": "\"OBIWAN-01\"",
+    "Topic": "\"rur/plc/OBIWAN/occupation\""
+  },
+  "level": "INFO",
+  "logger": "RUR.Common.Mqtt.Mediator.Behaviors.LogMqttMessageProcessingBehavior",
+  "headers": { "x-AgentName": "OBIWAN" }
+}

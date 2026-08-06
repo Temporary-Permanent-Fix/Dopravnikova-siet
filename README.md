@@ -12,10 +12,11 @@ Verzia obnovená zo skompilovaného buildu **0.3.2-BETA**. Detaily obnovy: `RECO
       tauri-integration.js   stub (pôvodný IPC glue sa neobnovil celý)
       assets/
         alza_cz.png          logo (obnovené)
-        fonts/               ← doplň IBM Plex + Tabler (viď README vnútri)
-      highs/build/           ← doplň HiGHS wasm (viď README vnútri)
+        fonts/               IBM Plex + Tabler Icons (vendorované z npm, viď README vnútri)
+      highs/build/           HiGHS wasm (vendorované z npm, viď README vnútri)
     data/
-      data.json              obnovený dataset (CZLC4, 3 podlažia, 372 nodes / 447 edges)
+      data.json              pôvodný obnovený dataset CZLC4 (len historická referencia)
+      sklc3.json             oficiálny lokálny layout SKLC3
     _recovered/              čiastočne obnovené súbory len pre referenciu
 
 ## Solver
@@ -25,8 +26,10 @@ Verzia obnovená zo skompilovaného buildu **0.3.2-BETA**. Detaily obnovy: `RECO
 
 ## Dáta
 
-Appka si stav ukladá do `localStorage`. `data/data.json` je obnovený dataset —
-naimportuj ho v appke, resp. použi ako referenčný/seed obsah.
+Appka si stav ukladá do `localStorage`. Tlačidlo **Načítať SKLC3** načíta lokálny
+`src/sklc3.json` a nevyžaduje internet ani GitHub token. Súbor je zatiaľ prázdna,
+platná šablóna; nahraď ho dodaným layoutom SKLC3. `data/data.json` obsahuje
+pôvodný CZLC4 dataset len ako historickú referenciu.
 
 ## Ako rozbehať (Tauri 2)
 

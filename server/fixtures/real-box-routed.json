@@ -1,0 +1,10 @@
+{
+  "@timestamp": "2026-07-15T08:12:41.203Z",
+  "message": "Box has been routed (boxCode='\"80051959\"'; direction=12).",
+  "messageTemplate": "Box has been routed (boxCode='{BoxCode}'; direction={DirectionTo}).",
+  "messageKeys": ["BoxCode", "DirectionTo"],
+  "messageParams": { "BoxCode": "\"80051959\"", "DirectionTo": "12" },
+  "level": "INFO",
+  "logger": "RUR.TMS.Agent.Core.Routing.Components.PublishKoRoutedComponent",
+  "headers": { "x-AgentName": "DS24S26" }
+}

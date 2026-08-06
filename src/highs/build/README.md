@@ -1,11 +1,8 @@
-# HiGHS solver (chýba — third-party, doplň sem)
+# HiGHS solver (doplněno)
 
-`index.html` načítava primárny solver z tohto priečinka:
+`highs.js` + `highs.wasm` vendorováno z npm balíčku `highs` (1.15.2, build
+https://github.com/lovasoa/highs-js) — appka tak řeší LP/MILP offline, bez
+CDN. Fallback na `https://cdn.jsdelivr.net/npm/highs/build/` a na glpk.js
+(CDN) zůstává funkční, pokud tyto soubory chybí nebo selžou.
 
-- `highs.js`
-- `highs.wasm`
-
-Zdroj: HiGHS WebAssembly build — https://github.com/lovasoa/highs-js
-(napr. `npm i highs`, skopíruj `build/highs.js` a `build/highs.wasm` sem).
-
-Fallback solver glpk.js sa načítava z CDN (`https://esm.sh/glpk.js@4.0.2`), netreba nič lokálne.
+Licence: MIT.

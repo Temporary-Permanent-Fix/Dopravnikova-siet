@@ -1,0 +1,6 @@
+{
+  "@timestamp": "2026-07-15T08:14:00.000Z",
+  "messageTemplate": "Box has been routed (boxCode='{BoxCode}'; direction={DirectionTo}).",
+  "messageParams": { "BoxCode": "\"80077777\"", "DirectionTo": "6" },
+  "headers": { "x-AgentName": "C3PO" }
+}

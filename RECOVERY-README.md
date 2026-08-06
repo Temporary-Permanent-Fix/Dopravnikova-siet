@@ -6,7 +6,7 @@ Front-end assety boli v binárke embednuté a brotli-komprimované; dekomprimova
 
 ## Plne obnovené (tvoj kód, čitateľný, NEminifikovaný)
 - `src/index.html` — celá appka; 206 funkcií, ~950 komentárov, pôvodné formátovanie zachované.
-- `data/data.json` — dataset siete: 3 podlažia (CZLC4 3./2./1. NP), 372 nodes, 447 edges.
+- `data/data.json` — pôvodný dataset siete: 3 podlažia (CZLC4 3./2./1. NP), 372 nodes, 447 edges. Aktívny layout aplikácie je `src/sklc3.json`.
 - `src/assets/alza_cz.png` — logo (raw).
 
 ## Čiastočne
@@ -17,7 +17,7 @@ Front-end assety boli v binárke embednuté a brotli-komprimované; dekomprimova
 - Rust backend (`src-tauri/*.rs`) — skompilovaný, nedekompilovateľný na použiteľný zdroj.
 - `tauri.conf.json`, `Cargo.toml`, `package.json` — neembednuté (rekonštruovateľné).
 
-## Third-party (doplniť zvlášť)
+## Third-party (doplnené z npm — offline, bez CDN)
 - Fonty IBM Plex + Tabler Icons → `src/assets/fonts/`
 - HiGHS WASM → `src/highs/build/`
-- glpk.js → CDN, netreba lokálne.
+- glpk.js → CDN, netreba lokálne (fallback, keď HiGHS zlyhá).

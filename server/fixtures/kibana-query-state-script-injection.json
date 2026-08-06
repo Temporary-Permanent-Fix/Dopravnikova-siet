@@ -1,0 +1,14 @@
+{
+  "timeRange": { "from": "now-15m", "to": "now" },
+  "filters": [
+    {
+      "negate": false,
+      "disabled": false,
+      "query": {
+        "term": {
+          "agent": { "value": "DS24S26", "script": { "source": "System.exit(1)" } }
+        }
+      }
+    }
+  ]
+}
