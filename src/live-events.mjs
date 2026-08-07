@@ -129,3 +129,7 @@ export function buildSnapshot(documents, telemetry, layout, windowSeconds) {
 }
 
 export const elasticTemplates = [BOX_TEMPLATE, ARM_TEMPLATE, MESSAGE_TEMPLATE];
+
+if (typeof window !== 'undefined') {
+  window.buildSnapshot = buildSnapshot;
+}

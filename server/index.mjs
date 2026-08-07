@@ -1,7 +1,7 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize, resolve } from 'node:path';
-import { buildSnapshot, elasticTemplates, passiveSegment } from './live-events.mjs';
+import { buildSnapshot, elasticTemplates, passiveSegment } from '../src/live-events.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 const publicDir = join(root, 'src');

@@ -12,7 +12,7 @@ const POLL_INTERVAL_MS = 3000;
 const QUERY_BODY = {
   size: 500,
   sort: [{ dateTime: 'desc' }],
-  _source: ['dateTime', 'message', 'headers.x-AgentName', 'level', 'kubernetes.pod_name', 'time_key'],
+  _source: ['dateTime', 'message', 'headers.x-AgentName', 'level', 'kubernetes.pod_name', 'time_key', 'messageTemplate', 'messageParams'],
   query: {
     bool: {
       filter: [
@@ -49,7 +49,9 @@ function normalizeHit(hit) {
     message: source.message || '',
     agent: source.headers?.['x-AgentName'] ?? source['headers.x-AgentName'] ?? null,
     level: source.level || null,
-    podName: source.kubernetes?.pod_name ?? source['kubernetes.pod_name'] ?? null
+    podName: source.kubernetes?.pod_name ?? source['kubernetes.pod_name'] ?? null,
+    messageTemplate: source.messageTemplate || null,
+    messageParams: source.messageParams || null
   };
 }
 

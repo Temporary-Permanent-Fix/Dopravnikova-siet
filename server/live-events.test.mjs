@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeLiveEvent, passiveSegment, buildSnapshot, elasticTemplates } from './live-events.mjs';
+import { normalizeLiveEvent, passiveSegment, buildSnapshot, elasticTemplates } from '../src/live-events.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 const fixturesDir = join(import.meta.dirname, 'fixtures');

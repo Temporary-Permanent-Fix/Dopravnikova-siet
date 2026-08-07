@@ -1732,6 +1732,7 @@ kbd {
           <button class="btn-sim" id="btn-live-telemetry" title="Živé dáta cez lokálny SKLC3 server">● Live</button>
           <button class="btn-sim" id="btn-kibana-link" title="Nastaviť dopyt z Kibana linku">🔗 Kibana link</button>
           <button class="btn-sim" id="btn-live-logs" title="Živé sirové logy tms-multi-agent (cez browser extension SKLC3 Live Logs Bridge)">📋 Live logs</button>
+          <button class="btn-sim" id="btn-live-logs-movement" title="Animácia KLT pohybu na plátne podľa živých dát z browser extension SKLC3 Live Logs Bridge">▶ Živý pohyb</button>
           <button class="btn-sim-export" id="btn-export-sim" disabled title="Nejdřív spusť Optimalizaci">⤓ TMS matice (CSV)</button>
           <button class="btn-sim-export" id="btn-export-assignment" disabled title="Nejdřív naimportuj trasy v Matici cílů">⤓ Cíl × trasa (CSV)</button>
         </div>
@@ -2605,6 +2606,7 @@ const state = {
   liveLogsLastError: null,
   liveLogsLastUpdate: null,
   liveLogsWatchdog: null,
+  liveLogsMovementActive: false,
   packingPercent: 7,
   dragWaypoint: null,
   viewport: { x: 0, y: 0, zoom: 1 },
@@ -3612,6 +3614,7 @@ function clearSimulation() {
     state.liveAgeTimer = null;
   }
   state.liveTelemetry = null;
+  state.liveLogsMovementActive = false;
   state.simulation = null;
   state.highlightSourceId = null;
   hideEdgeTooltip();
@@ -3635,6 +3638,11 @@ function clearSimulation() {
   if (btnLive) {
     btnLive.textContent = '● Live';
     btnLive.classList.remove('active');
+  }
+  const btnLiveLogsMove = document.getElementById('btn-live-logs-movement');
+  if (btnLiveLogsMove) {
+    btnLiveLogsMove.textContent = '▶ Živý pohyb';
+    btnLiveLogsMove.classList.remove('active');
   }
   const leg = document.getElementById('sim-legend');
   if (leg) leg.style.display = 'none';
@@ -3700,6 +3708,7 @@ function handleLiveLogsBridgeMessage(data) {
       const sorted = [...state.liveLogsRecords.entries()].sort((a, b) => Date.parse(b[1].dateTime || 0) - Date.parse(a[1].dateTime || 0));
       state.liveLogsRecords = new Map(sorted.slice(0, LIVE_LOGS_MAX_RECORDS));
     }
+    if (state.liveLogsMovementActive) applyLiveLogsMovement(data.records || []);
   } else if (data.type === 'sklc3-logs-error') {
     state.liveLogsStatus = 'error';
     state.liveLogsLastError = data.error?.message || 'Neznáma chyba';
@@ -3813,13 +3822,17 @@ function applyTelemetryDemo(mappingData, tick) {
   render();
 }
 
+async function loadTelemetryMapping() {
+  const response = await fetch('./sklc3-telemetry.json', { cache: 'no-store' });
+  if (!response.ok) throw new Error('HTTP ' + response.status);
+  return response.json();
+}
+
 async function toggleTelemetryDemo() {
   if (state.simulation && state.simulation.mode === 'telemetry-demo') { clearSimulation(); return; }
   clearSimulation();
   try {
-    const response = await fetch('./sklc3-telemetry.json', { cache: 'no-store' });
-    if (!response.ok) throw new Error('HTTP ' + response.status);
-    const mappingData = await response.json();
+    const mappingData = await loadTelemetryMapping();
     const mappedCount = new Set(Object.values(mappingData.mappings || {})).size;
     if (!mappedCount) throw new Error('není vyplněné žádné směrování');
     let tick = 0;
@@ -3837,7 +3850,22 @@ async function toggleTelemetryDemo() {
   }
 }
 
-function applyLiveSnapshot(snapshot) {
+function toggleLiveLogsMovement() {
+  if (state.liveLogsMovementActive) { clearSimulation(); return; }
+  clearSimulation();
+  state.liveLogsMovementActive = true;
+  const btn = document.getElementById('btn-live-logs-movement');
+  if (btn) { btn.textContent = '■ Zastaviť pohyb'; btn.classList.add('active'); }
+  flash('▶ Živý pohyb spustený — čaká sa na dáta z browser extension');
+  if (state.liveLogsRecords.size) applyLiveLogsMovement([...state.liveLogsRecords.values()]);
+}
+
+// Shared by both live-data paths ("● Live" SSE and "▶ Živý pohyb" browser
+// extension): turns a buildSnapshot()-shaped snapshot into state.simulation.
+// Deliberately does NOT touch state.liveTelemetry/renderLiveMonitor() (that
+// widget hardcodes "SSE" status text) and does NOT re-render — each caller
+// layers its own mode-specific status/side effects on top.
+function applySnapshotToSimulation(snapshot, mode) {
   const flow = {}, utilization = {};
   const occupied = {};
   state.edges.forEach(edge => {
@@ -3853,11 +3881,16 @@ function applyLiveSnapshot(snapshot) {
     offset: index / Math.max((snapshot.boxes || []).length, 1)
   })).filter(crate => crate.edgeIds[0]);
   state.simulation = {
-    mode: 'live', flow, utilization,
+    mode, flow, utilization,
     throughput: Object.values(flow).reduce((sum, rate) => sum + rate, 0),
     maxUtil: Math.max(0, ...Object.values(utilization)), bottleneck: null,
     portalFlow: {}, crossFloor: true, demoCrates, occupied
   };
+  return { flow, utilization, occupied, demoCrates };
+}
+
+function applyLiveSnapshot(snapshot) {
+  const { flow, demoCrates, occupied } = applySnapshotToSimulation(snapshot, 'live');
   state.liveTelemetry = {
     ...(state.liveTelemetry || {}),
     connection: state.liveTelemetry?.connection === 'error' ? 'error' : 'connected',
@@ -3883,6 +3916,44 @@ function applyLiveSnapshot(snapshot) {
   renderFloorTabs();
   renderSimDetails();
   render();
+}
+
+async function applyLiveLogsMovement(records) {
+  if (!records || !records.length) return;
+  try {
+    const mappingData = await loadTelemetryMapping();
+    const mappedCount = new Set(Object.values(mappingData.mappings || {})).size;
+    if (!mappedCount) throw new Error('není vyplněné žádné směrování');
+
+    // KRITICKÉ PRE SPRÁVNOSŤ: buildSnapshot().slice(-N) predpokladá VZOSTUPNÉ
+    // časové poradie (najstaršie→najnovšie) — server-side Elasticsearch cesta
+    // (server/index.mjs) preto explicitne triedi `sort: 'asc'`. kibana-fetcher.js
+    // ale triedi DESC (najnovšie prvé) — bez tohto zoradenia by buildSnapshot
+    // vzalo najstaršie záznamy namiesto najnovších.
+    const sorted = records.slice().sort((a, b) =>
+      Date.parse(a.dateTime || a.time_key || 0) - Date.parse(b.dateTime || b.time_key || 0));
+
+    const LIVE_LOGS_WINDOW_SECONDS = 60; // aproximácia pre ratePerHour/utilization
+                                          // (bridge dopyt nie je časovo okienkovaný;
+                                          // netýka sa pozícií KLT, len farby vyťaženia)
+    const snapshot = window.buildSnapshot(
+      sorted, mappingData, { nodes: state.nodes, edges: state.edges }, LIVE_LOGS_WINDOW_SECONDS
+    );
+
+    const { flow, demoCrates } = applySnapshotToSimulation(snapshot, 'live-logs');
+    const mapped = Object.values(flow).filter(rate => rate > 0).length;
+    document.getElementById('sim-result').innerHTML =
+      `<span><strong>Živý pohyb</strong> ·</span>` +
+      `<span>${records.length} záznamov</span>` +
+      `<span>${mapped} aktívnych pásov</span>` +
+      `<span>${demoCrates.length} KLT</span>`;
+    document.getElementById('sim-legend').style.display = 'flex';
+    renderFloorTabs();
+    renderSimDetails();
+    render();
+  } catch (err) {
+    flash('✗ Živý pohyb sa nepodarilo aplikovať: ' + err.message);
+  }
 }
 
 async function liveResponseError(response) {
@@ -4301,7 +4372,7 @@ function renderSimDetails() {
 
   const live = state.liveTelemetry;
   const unmappedEvents = live?.unmappedEvents || [];
-  const liveIssuesHtml = sim.mode !== 'live' ? '' : `<div class="sd-section" style="grid-column: 1 / -1;">
+  const liveIssuesHtml = (sim.mode !== 'live' && sim.mode !== 'live-logs') ? '' : `<div class="sd-section" style="grid-column: 1 / -1;">
       <h4>Live udalosti vyžadujúce kontrolu</h4>
       ${unmappedEvents.length === 0
         ? '<div class="sd-empty">žiadne nemapované ani nejednoznačné udalosti</div>'
@@ -4404,7 +4475,7 @@ function renderSimDetails() {
   el.innerHTML = `
     <div class="sd-grid">
       <div class="sd-section">
-        <h4>${sim.mode === 'live' ? 'Live ramená (OBS = obsadené)' : 'Top 5 hran (max vytížení)'}</h4>
+        <h4>${(sim.mode === 'live' || sim.mode === 'live-logs') ? 'Live ramená (OBS = obsadené)' : 'Top 5 hran (max vytížení)'}</h4>
         ${topEdgesHtml}
       </div>
       <div class="sd-section">
@@ -6460,7 +6531,7 @@ function drawCanvasScene() {
   // Progress is distributed over the segment's edges; this is intentionally
   // independent of whether intermediate joiners emit their own telemetry.
   const demoCratesByEdge = new Map();
-  if (sim && (sim.mode === 'telemetry-demo' || sim.mode === 'live') && Array.isArray(sim.demoCrates)) {
+  if (sim && (sim.mode === 'telemetry-demo' || sim.mode === 'live' || sim.mode === 'live-logs') && Array.isArray(sim.demoCrates)) {
     sim.demoCrates.forEach(crate => {
       // Constant per-edge speed regardless of chain length (see CRATE_MS_PER_EDGE):
       // crate.offset spreads different crates' start position along their own chain.
@@ -8355,6 +8426,7 @@ document.getElementById('btn-telemetry-demo').addEventListener('click', toggleTe
 document.getElementById('btn-live-telemetry').addEventListener('click', toggleLiveTelemetry);
 
 document.getElementById('btn-live-logs').addEventListener('click', toggleLiveLogsPanel);
+document.getElementById('btn-live-logs-movement').addEventListener('click', toggleLiveLogsMovement);
 window.addEventListener('message', event => {
   if (event.source !== window || event.origin !== window.location.origin) return;
   if (event.data?.source !== 'sklc3-ext-bridge') return;
@@ -10556,5 +10628,6 @@ window.addEventListener('keydown', e => {
 </script>
   <script src="tauri-integration.js"></script>
   <script type="module" src="kibana-rison.mjs"></script>
+  <script type="module" src="live-events.mjs"></script>
 </body>
 </html>
