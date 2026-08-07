@@ -1123,6 +1123,25 @@ body {
 .live-monitor .live-state.error { color: #b91c1c; }
 .live-monitor .live-separator { color: var(--border-strong, #b8c0ca); }
 .live-monitor .live-error { color: #b91c1c; flex-basis: 100%; }
+.live-logs-panel {
+  margin-top: 8px;
+  padding: 7px 10px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  font: 11px 'IBM Plex Mono', monospace;
+}
+.live-logs-panel .live-logs-status { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 8px; color: var(--text-secondary); margin-bottom: 6px; }
+.live-logs-panel .live-logs-table { width: 100%; border-collapse: collapse; max-height: 260px; display: block; overflow-y: auto; }
+.live-logs-panel .live-logs-table tr { border-top: 1px solid var(--border); }
+.live-logs-panel .live-logs-table tr:first-child { border-top: none; }
+.live-logs-panel .live-logs-table td { padding: 3px 6px 3px 0; vertical-align: top; color: var(--text); }
+.live-logs-panel .live-logs-table .lg-time { white-space: nowrap; color: var(--text-tertiary); }
+.live-logs-panel .live-logs-table .lg-agent { white-space: nowrap; font-weight: 600; }
+.live-logs-panel .live-logs-table .lg-level { white-space: nowrap; }
+.live-logs-panel .live-logs-table .lg-level.warn { color: #a16207; }
+.live-logs-panel .live-logs-table .lg-level.error { color: #b91c1c; }
+.live-logs-panel .live-logs-empty { color: var(--text-tertiary); font-style: italic; }
 @keyframes chevron-flow {
   from { transform: translateX(0); }
   to   { transform: translateX(22px); }
@@ -1712,12 +1731,14 @@ kbd {
           <button class="btn-sim" id="btn-telemetry-demo" title="Demo pohybu podle doplněných Kibana směrů">▶ Demo pohyb</button>
           <button class="btn-sim" id="btn-live-telemetry" title="Živé dáta cez lokálny SKLC3 server">● Live</button>
           <button class="btn-sim" id="btn-kibana-link" title="Nastaviť dopyt z Kibana linku">🔗 Kibana link</button>
+          <button class="btn-sim" id="btn-live-logs" title="Živé sirové logy tms-multi-agent (cez browser extension SKLC3 Live Logs Bridge)">📋 Live logs</button>
           <button class="btn-sim-export" id="btn-export-sim" disabled title="Nejdřív spusť Optimalizaci">⤓ TMS matice (CSV)</button>
           <button class="btn-sim-export" id="btn-export-assignment" disabled title="Nejdřív naimportuj trasy v Matici cílů">⤓ Cíl × trasa (CSV)</button>
         </div>
         <div class="sim-shares" id="sim-shares"></div>
         <div class="sim-preflight" id="sim-preflight"></div>
         <div class="live-monitor" id="live-monitor" hidden aria-live="polite"></div>
+        <div class="live-logs-panel" id="live-logs-panel" hidden aria-live="polite"></div>
         <span class="sim-result" id="sim-result">
           <span class="empty">Rovnoměrné = každý uzel rozdělí tok stejnoměrně. Optimalizace = LP najde nejlepší rozdělení podle podílů cílů.</span>
         </span>
@@ -2578,6 +2599,12 @@ const state = {
   liveTelemetry: null,
   liveConnection: null,
   liveAgeTimer: null,
+  liveLogsOpen: false,
+  liveLogsRecords: new Map(),
+  liveLogsStatus: 'idle', // idle | connected | error
+  liveLogsLastError: null,
+  liveLogsLastUpdate: null,
+  liveLogsWatchdog: null,
   packingPercent: 7,
   dragWaypoint: null,
   viewport: { x: 0, y: 0, zoom: 1 },
@@ -3649,6 +3676,89 @@ function renderLiveMonitor() {
     `<span class="live-separator">·</span><span>lag zdroja ${sourceLag}</span>` +
     `<span class="live-separator">·</span><span>${live.occupiedCount || 0} obsadené ramená</span>` +
     `<span class="live-separator">·</span><span>${live.unmappedCount || 0} nemapované</span>${source}${lastError}`;
+}
+
+const LIVE_LOGS_MAX_RECORDS = 500;
+const LIVE_LOGS_WATCHDOG_MS = 5000;
+
+function armLiveLogsWatchdog() {
+  if (state.liveLogsWatchdog) clearTimeout(state.liveLogsWatchdog);
+  state.liveLogsWatchdog = setTimeout(() => {
+    if (state.liveLogsStatus === 'idle') renderLiveLogsPanel();
+  }, LIVE_LOGS_WATCHDOG_MS);
+}
+
+function handleLiveLogsBridgeMessage(data) {
+  if (data.type === 'sklc3-logs-snapshot') {
+    state.liveLogsStatus = 'connected';
+    state.liveLogsLastError = null;
+    state.liveLogsLastUpdate = data.fetchedAt || new Date().toISOString();
+    for (const record of data.records || []) {
+      if (record?.id) state.liveLogsRecords.set(record.id, record);
+    }
+    if (state.liveLogsRecords.size > LIVE_LOGS_MAX_RECORDS) {
+      const sorted = [...state.liveLogsRecords.entries()].sort((a, b) => Date.parse(b[1].dateTime || 0) - Date.parse(a[1].dateTime || 0));
+      state.liveLogsRecords = new Map(sorted.slice(0, LIVE_LOGS_MAX_RECORDS));
+    }
+  } else if (data.type === 'sklc3-logs-error') {
+    state.liveLogsStatus = 'error';
+    state.liveLogsLastError = data.error?.message || 'Neznáma chyba';
+    state.liveLogsLastUpdate = data.fetchedAt || new Date().toISOString();
+  } else {
+    return;
+  }
+  if (state.liveLogsWatchdog) { clearTimeout(state.liveLogsWatchdog); state.liveLogsWatchdog = null; }
+  renderLiveLogsPanel();
+}
+
+function renderLiveLogsPanel() {
+  const el = document.getElementById('live-logs-panel');
+  if (!el) return;
+  if (!state.liveLogsOpen) { el.hidden = true; return; }
+  el.hidden = false;
+  const status = state.liveLogsStatus;
+  const age = secondsSince(state.liveLogsLastUpdate);
+  let statusLabel, statusCls;
+  if (status === 'connected') { statusLabel = '● pripojené'; statusCls = 'ok'; }
+  else if (status === 'error') { statusLabel = '● chyba'; statusCls = 'error'; }
+  else { statusLabel = '◌ čakám na rozšírenie SKLC3 Live Logs Bridge'; statusCls = 'waiting'; }
+  const errorLine = status === 'error'
+    ? `<span class="live-error">Chyba: ${escapeHtml(state.liveLogsLastError || '')}</span>`
+    : '';
+  const notFoundHint = status === 'idle'
+    ? `<span class="live-error">Otvorte a prihláste sa do https://kibana.prod.alza.cz v inej karte — inak rozšírenie nemá odkiaľ čítať dáta.</span>`
+    : '';
+  const statusHtml = `<div class="live-logs-status">` +
+    `<span class="live-state ${statusCls}">${statusLabel}</span>` +
+    (age != null ? `<span class="live-separator">·</span><span>vek ${formatAge(age)}</span>` : '') +
+    `<span class="live-separator">·</span><span>${state.liveLogsRecords.size} záznamov</span>${errorLine}${notFoundHint}</div>`;
+  const rows = [...state.liveLogsRecords.values()]
+    .sort((a, b) => Date.parse(b.dateTime || 0) - Date.parse(a.dateTime || 0))
+    .slice(0, LIVE_LOGS_MAX_RECORDS);
+  const levelCls = level => {
+    const l = String(level || '').toLowerCase();
+    return l.includes('err') ? 'error' : l.includes('warn') ? 'warn' : '';
+  };
+  const bodyHtml = rows.length
+    ? `<table class="live-logs-table"><tbody>${rows.map(r => `<tr>` +
+        `<td class="lg-time">${escapeHtml(r.dateTime || r.time_key || '—')}</td>` +
+        `<td class="lg-agent">${escapeHtml(r.agent || '—')}</td>` +
+        `<td class="lg-level ${levelCls(r.level)}">${escapeHtml(r.level || '')}</td>` +
+        `<td class="lg-message">${escapeHtml(r.message || '')}</td>` +
+      `</tr>`).join('')}</tbody></table>`
+    : `<div class="live-logs-empty">Zatiaľ žiadne záznamy.</div>`;
+  el.innerHTML = statusHtml + bodyHtml;
+}
+
+function toggleLiveLogsPanel() {
+  state.liveLogsOpen = !state.liveLogsOpen;
+  const btn = document.getElementById('btn-live-logs');
+  if (btn) btn.classList.toggle('active', state.liveLogsOpen);
+  if (state.liveLogsOpen) {
+    if (state.liveLogsStatus === 'idle') armLiveLogsWatchdog();
+    window.postMessage({ source: 'sklc3-app', type: 'request-snapshot' }, window.location.origin);
+  }
+  renderLiveLogsPanel();
 }
 
 function passiveSegmentFromEdge(startEdgeId, telemetryAgents) {
@@ -8243,6 +8353,13 @@ document.getElementById('btn-optimize').addEventListener('click', () => {
 
 document.getElementById('btn-telemetry-demo').addEventListener('click', toggleTelemetryDemo);
 document.getElementById('btn-live-telemetry').addEventListener('click', toggleLiveTelemetry);
+
+document.getElementById('btn-live-logs').addEventListener('click', toggleLiveLogsPanel);
+window.addEventListener('message', event => {
+  if (event.source !== window || event.origin !== window.location.origin) return;
+  if (event.data?.source !== 'sklc3-ext-bridge') return;
+  handleLiveLogsBridgeMessage(event.data);
+});
 
 document.getElementById('btn-kibana-link').addEventListener('click', showKibanaLinkModal);
 document.getElementById('kibana-open-btn').addEventListener('click', openKibanaBaseUrl);

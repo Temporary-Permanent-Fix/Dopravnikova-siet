@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "SKLC3 Live Logs Bridge",
+  "version": "1.0.0",
+  "description": "Prenáša živé logy tms-multi-agent zo session Kibany do appky Editor dopravníkovej siete (localhost alebo GitHub Codespaces forwarded port).",
+  "permissions": ["tabs"],
+  "host_permissions": [
+    "https://kibana.prod.alza.cz/*",
+    "http://localhost:5173/*",
+    "http://127.0.0.1:5173/*",
+    "https://*-5173.app.github.dev/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://kibana.prod.alza.cz/*"],
+      "js": ["kibana-fetcher.js"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["http://localhost:5173/*", "http://127.0.0.1:5173/*", "https://*-5173.app.github.dev/*"],
+      "js": ["app-bridge.js"],
+      "run_at": "document_start"
+    }
+  ]
+}

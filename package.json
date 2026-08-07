@@ -2,6 +2,9 @@
   "name": "sklc3-live-visualization",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=20.11.0"
+  },
   "scripts": {
     "dev": "node server/index.mjs",
     "start": "node server/index.mjs",
