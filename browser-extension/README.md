@@ -41,8 +41,10 @@ cez existujúcu Kibana session v prehliadači.
      lebo to nie je reálna karta prehliadača). URL má tvar
      `https://<názov-codespace>-5173.app.github.dev`; manifest má
      `host_permissions`/`content_scripts` už nastavené na wildcard
-     `https://*-5173.app.github.dev/*`, takže funguje pre ľubovoľný
-     codespace bez úpravy po každom novom vytvorení. Over v Codespace →
+     `https://*.app.github.dev/*` (Chrome/Edge nepovoľujú wildcard zlepený s
+     časťou labelu ako `*-5173.app.github.dev` — `Invalid host wildcard` pri
+     načítaní), takže funguje pre ľubovoľný codespace/port bez úpravy po
+     každom novom vytvorení. Over v Codespace →
      panel **Ports**, že port `5173` je forwardnutý (spustený `npm start`)
      a otvor jeho URL priamo v Chrome (tlačidlo "Open in Browser", nie
      "Preview").

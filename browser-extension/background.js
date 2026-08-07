@@ -2,7 +2,7 @@
 // a app-bridge.js (beží na origin appky). Nič neparsuje, len drží posledný
 // stav a rozposiela ho.
 
-const APP_URL_PATTERNS = ['http://localhost:5173/*', 'http://127.0.0.1:5173/*', 'https://*-5173.app.github.dev/*'];
+const APP_URL_PATTERNS = ['http://localhost:5173/*', 'http://127.0.0.1:5173/*', 'https://*.app.github.dev/*'];
 
 let lastMessage = null;
 
