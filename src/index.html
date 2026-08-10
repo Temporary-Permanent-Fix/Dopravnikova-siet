@@ -1316,7 +1316,8 @@ body {
 }
 .btn-sim-export:hover:not(:disabled) { background: var(--bg); border-color: var(--text-tertiary); }
 .btn-sim-export:disabled { opacity: 0.4; cursor: not-allowed; }
-.sim-buttons { display: flex; gap: 6px; }
+.sim-buttons { display: flex; gap: 6px; align-items: center; }
+.sim-tab-hidden { display: none !important; }
 .sim-shares {
   display: flex;
   gap: 10px;
@@ -1630,6 +1631,7 @@ kbd {
         <span class="pill-sub">uzly · dopravníky</span>
       </div>
       <div class="icon-tray">
+        <span class="header-pill" id="app-version-pill" title="Verze aplikace (release)">v…</span>
         <button class="icon-btn" id="btn-shortcuts" title="Klávesové zkratky (?)"><i class="ti ti-help"></i></button>
       </div>
     </div>
@@ -1744,6 +1746,19 @@ kbd {
           <button class="btn-sim" id="btn-live-logs-movement" title="Animácia KLT pohybu na plátne podľa živých dát z browser extension SKLC3 Live Logs Bridge">▶ Živý pohyb</button>
           <button class="btn-sim-export" id="btn-export-sim" disabled title="Nejdřív spusť Optimalizaci">⤓ TMS matice (CSV)</button>
           <button class="btn-sim-export" id="btn-export-assignment" disabled title="Nejdřív naimportuj trasy v Matici cílů">⤓ Cíl × trasa (CSV)</button>
+          <div class="toolbar-dropdown" id="sim-tabs-settings-dropdown">
+            <button class="icon-btn" id="btn-sim-tabs-settings" title="Zobrazit/skrýt tlačítka panelu" aria-haspopup="true" aria-expanded="false"><i class="ti ti-adjustments"></i></button>
+            <div class="dropdown-menu" id="sim-tabs-settings-menu" hidden>
+              <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-simulate" checked> ▶ Rovnoměrné</label>
+              <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-optimize" checked> ⚙ Optimalizovat</label>
+              <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-telemetry-demo" checked> ▶ Demo pohyb</label>
+              <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-live-filter" checked> 🔎 Filter</label>
+              <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-live-logs" checked> 📋 Live logs</label>
+              <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-live-logs-movement" checked> ▶ Živý pohyb</label>
+              <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-export-sim" checked> ⤓ TMS matice (CSV)</label>
+              <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-export-assignment" checked> ⤓ Cíl × trasa (CSV)</label>
+            </div>
+          </div>
         </div>
         <div class="sim-shares" id="sim-shares"></div>
         <div class="sim-preflight" id="sim-preflight"></div>
@@ -6782,6 +6797,13 @@ function setUseCanvas(on) {
   render();
 }
 
+// True během nativní HTML5 drag session z palety uzlů (dragstart → dragend/drop
+// v setupPaletteDragDrop níže). Chrání render() pod tím před destruktivním
+// přepsáním SVG DOM uprostřed gesta — to může prohlížeč potichu zrušit
+// probíhající drop, pokud se překryje s live-tickem (Demo pohyb / Živý pohyb).
+let paletteDragActive = false;
+let pendingRenderAfterDrag = false;
+
 function render() {
   rebuildNodeIndex();  // keep O(1) lookup index in sync with any pending mutations
   // Welcome-card (onboarding) řeš v OBOU render cestách — canvas i SVG; jinak by
@@ -6790,6 +6812,7 @@ function render() {
   // V canvas módu přeskočíme stavbu celého SVG DOM (to je ta drahá část ~10 ms)
   // a scénu jen vykreslíme na <canvas>. Tady je vlastní výkonový zisk.
   if (state.useCanvas) { drawCanvasScene(); return; }
+  if (paletteDragActive) { pendingRenderAfterDrag = true; return; }
   bgLayer.innerHTML = '';
   edgesLayer.innerHTML = '';
   nodesLayer.innerHTML = '';
@@ -8395,6 +8418,16 @@ if (btnRenderer) btnRenderer.addEventListener('click', () => applyRendererChoice
 // Canvas je výchozí; SVG jen když si ho uživatel výslovně zvolil ('0').
 try { if (localStorage.getItem('editorUseCanvas') !== '0') applyRendererChoice(true); } catch (e) { applyRendererChoice(true); }
 
+// Verze aplikace (release semver z package.json) — NENÍ totéž co uložené
+// verze mapy (CZLC4 "Uložit verzi" níže), jde jen o odznak buildu appky.
+(function loadAppVersionPill() {
+  const el = document.getElementById('app-version-pill');
+  if (!el) return;
+  fetch('/api/version').then(r => r.json()).then(data => {
+    if (data && data.version) el.textContent = 'v' + data.version;
+  }).catch(() => { el.textContent = ''; el.hidden = true; });
+})();
+
 document.getElementById('btn-simulate').addEventListener('click', () => {
   if (state.simulation && state.simulation.mode !== 'optimal') clearSimulation();
   else { clearSimulation(); runSimulation(); }
@@ -8421,6 +8454,49 @@ sendLiveLogsFilters();
 
 document.getElementById('btn-export-sim').addEventListener('click', exportSimulationCsv);
 document.getElementById('btn-export-assignment').addEventListener('click', exportAssignmentCsv);
+
+// Skrývání jednotlivých tlačítek spodního sim panelu (perzistováno v localStorage).
+const SIM_TABS_STORAGE_KEY = 'sklc3SimPanelHiddenTabs';
+const SIM_TAB_IDS = ['btn-simulate', 'btn-optimize', 'btn-telemetry-demo', 'btn-live-filter', 'btn-live-logs', 'btn-live-logs-movement', 'btn-export-sim', 'btn-export-assignment'];
+function getHiddenSimTabs() {
+  try { return new Set(JSON.parse(localStorage.getItem(SIM_TABS_STORAGE_KEY) || '[]')); } catch (e) { return new Set(); }
+}
+function applySimTabVisibility() {
+  const hidden = getHiddenSimTabs();
+  SIM_TAB_IDS.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.toggle('sim-tab-hidden', hidden.has(id));
+  });
+}
+function setSimTabHidden(id, isHidden) {
+  const hidden = getHiddenSimTabs();
+  if (isHidden) hidden.add(id); else hidden.delete(id);
+  try { localStorage.setItem(SIM_TABS_STORAGE_KEY, JSON.stringify([...hidden])); } catch (e) {}
+  applySimTabVisibility();
+}
+applySimTabVisibility();
+(function setupSimTabsSettingsDropdown() {
+  const wrap = document.getElementById('sim-tabs-settings-dropdown');
+  const trigger = document.getElementById('btn-sim-tabs-settings');
+  const menu = document.getElementById('sim-tabs-settings-menu');
+  if (!wrap || !trigger || !menu) return;
+  function openMenu() {
+    const hidden = getHiddenSimTabs();
+    menu.querySelectorAll('input[data-sim-tab]').forEach(cb => { cb.checked = !hidden.has(cb.dataset.simTab); });
+    menu.hidden = false;
+    trigger.setAttribute('aria-expanded', 'true');
+  }
+  function closeMenu() {
+    menu.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+  }
+  trigger.addEventListener('click', e => { e.stopPropagation(); menu.hidden ? openMenu() : closeMenu(); });
+  menu.querySelectorAll('input[data-sim-tab]').forEach(cb => {
+    cb.addEventListener('change', () => setSimTabHidden(cb.dataset.simTab, !cb.checked));
+  });
+  document.addEventListener('click', e => { if (!menu.hidden && !wrap.contains(e.target)) closeMenu(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !menu.hidden) closeMenu(); });
+})();
 
 document.getElementById('btn-export').addEventListener('click', () => {
   const json = JSON.stringify({
@@ -8588,9 +8664,12 @@ document.getElementById('btn-clear').addEventListener('click', () => {
       e.dataTransfer.setData('text/plain', type);  // fallback for browsers that filter unknown MIME
       e.dataTransfer.effectAllowed = 'copy';
       item.classList.add('dragging');
+      paletteDragActive = true;
     });
     item.addEventListener('dragend', () => {
       item.classList.remove('dragging');
+      paletteDragActive = false;
+      if (pendingRenderAfterDrag) { pendingRenderAfterDrag = false; render(); }
     });
   });
 

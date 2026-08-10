@@ -14,6 +14,14 @@ This repository contains a desktop-oriented editor for a conveyor/sorting networ
 - Run the test suite: `npm test`
 - Start the server locally: `npm run dev` or `npm start`
 
+## Versioning
+The app's release version lives in `package.json`'s `"version"` field (semver `MAJOR.MINOR.PATCH`), served at `/api/version` and shown as a badge in the UI header. It is unrelated to the CZLC4 map-snapshot "verze" feature inside `src/index.html` (saved layout files in `versions/`) — do not conflate the two.
+- Bump the version **in the same commit** as the change it describes, and add a matching entry to `CHANGELOG.md`.
+- MAJOR: global/breaking change (e.g. layout data format, large redesign).
+- MINOR: new feature (e.g. a new panel, a new toggle).
+- PATCH: bugfix.
+- Skip the bump only for commits that touch nothing but docs/comments.
+
 ## Important files
 - `src/index.html` — main frontend UI and layout logic.
 - `server/index.mjs` — server entry point and snapshot generation.

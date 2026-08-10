@@ -5,6 +5,7 @@ import { buildSnapshot, describeSegmentEnd, elasticTemplates, passiveSegment } f
 
 const root = resolve(import.meta.dirname, '..');
 const publicDir = join(root, 'src');
+const pkg = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
 
 // Keep credentials out of the browser and out of git. A local server/.env is
 // optional; deployment environments supply the same values directly.
@@ -380,6 +381,7 @@ const server = createServer(async (req, res) => {
   if (req.method !== 'GET') return json(res, 405, { error: 'Method not allowed' });
   const queryState = mode === 'elasticsearch' ? staticConnectionState.query : null;
   if (url.pathname === '/api/health') return json(res, 200, { ok: true, mode, pollIntervalMs: livePollIntervalMs, configured: staticConnectionConfigured() });
+  if (url.pathname === '/api/version') return json(res, 200, { version: pkg.version });
   if (url.pathname === '/api/live/snapshot') {
     try { return json(res, 200, await liveSnapshot(queryState)); }
     catch (error) { return json(res, 503, liveErrorBody(error)); }
