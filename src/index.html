@@ -2595,6 +2595,7 @@ const state = {
   dragId: null, dragMoved: false, dragOffset: {x: 0, y: 0},
   nextId: 1,
   simulation: null,
+  boxTracker: new Map(), // boxCode -> {edgeIds, nextAgent, terminal, legStartAt} pre live/live-logs pohyb bedien
   telemetryDemoTimer: null,
   liveEventSource: null,
   liveTelemetry: null,
@@ -3616,6 +3617,7 @@ function clearSimulation() {
   state.liveTelemetry = null;
   state.liveLogsMovementActive = false;
   state.simulation = null;
+  state.boxTracker = new Map();
   state.highlightSourceId = null;
   hideEdgeTooltip();
   clearLpError();
@@ -3860,6 +3862,42 @@ function toggleLiveLogsMovement() {
   if (state.liveLogsRecords.size) applyLiveLogsMovement([...state.liveLogsRecords.values()]);
 }
 
+// Bedna zostane "vo vzduchu" najviac 45s bez potvrdenia od nasledujúceho
+// čidla, kým ju vizuál zahodí (výpadok dát / reálne zoslaná bedna / diera
+// v mapovaní) — inak by čakala navždy a hromadili by sa "duchovia".
+const BOX_WAIT_TIMEOUT_MS = 45000;
+// Bezpečný strop počtu súbežne sledovaných bedien (canvas nekreslí neobmedzene).
+const BOX_TRACKER_MAX = 40;
+
+// Sleduje totožnosť konkrétnej bedny (boxCode) naprieč viacerými udalosťami
+// z Kibany, aby vedela počkať na potvrdenie od ďalšieho čidla (nextAgent)
+// namiesto prepočítavania animácie odznova pri každom polle. Volané len pre
+// reálne live režimy (applySnapshotToSimulation), nie pre "telemetria demo".
+function updateBoxTracker(boxesAsc) {
+  const now = performance.now();
+  for (const box of boxesAsc) {
+    if (!box || !box.boxCode || !Array.isArray(box.edgeIds) || !box.edgeIds.length) continue;
+    // Každá nová udalosť pre daný boxCode štartuje nový úsek animácie od nuly
+    // — či už ide o potvrdenie príchodu na čidlo, na ktoré sa čakalo, alebo
+    // o prvé zbadanie tejto bedny (existing.nextAgent sa už nekontroluje
+    // explicitne: nová udalosť je vždy pravda o tom, kde sa bedna reálne
+    // nachádza teraz).
+    state.boxTracker.set(box.boxCode, {
+      edgeIds: box.edgeIds,
+      nextAgent: box.nextAgent || null,
+      terminal: !!box.terminal,
+      legStartAt: now
+    });
+  }
+  for (const [boxCode, box] of state.boxTracker) {
+    if (!box.terminal && (now - box.legStartAt) > BOX_WAIT_TIMEOUT_MS) state.boxTracker.delete(boxCode);
+  }
+  if (state.boxTracker.size > BOX_TRACKER_MAX) {
+    const sorted = [...state.boxTracker.entries()].sort((a, b) => b[1].legStartAt - a[1].legStartAt);
+    state.boxTracker = new Map(sorted.slice(0, BOX_TRACKER_MAX));
+  }
+}
+
 // Shared by both live-data paths ("● Live" SSE and "▶ Živý pohyb" browser
 // extension): turns a buildSnapshot()-shaped snapshot into state.simulation.
 // Deliberately does NOT touch state.liveTelemetry/renderLiveMonitor() (that
@@ -3880,6 +3918,7 @@ function applySnapshotToSimulation(snapshot, mode) {
     edgeIds: Array.isArray(box.edgeIds) && box.edgeIds.length ? box.edgeIds : [box.edgeId],
     offset: index / Math.max((snapshot.boxes || []).length, 1)
   })).filter(crate => crate.edgeIds[0]);
+  if (mode === 'live' || mode === 'live-logs') updateBoxTracker(snapshot.boxes || []);
   state.simulation = {
     mode, flow, utilization,
     throughput: Object.values(flow).reduce((sum, rate) => sum + rate, 0),
@@ -6427,6 +6466,11 @@ let _chevronPhase = 0;
 // segment, takže krabice na dlouhém segmentu proletěla všemi hranami za
 // stejných 0,9 s jako krátký úsek — pohyb pak vypadal mnohonásobně rychlejší.
 const CRATE_MS_PER_EDGE = 2600;
+// Live/live-logs pohyb (na rozdiel od telemetria-demo) sa NEOPAKUJE v slučke:
+// bedna sa priblíži ku koncu svojho pasívneho segmentu a zastaví STOP_MARGIN
+// "hranových jednotiek" pred koncovým uzlom (ďalším čidlom), kým nepríde
+// reálne potvrdenie z Kibany (viď updateBoxTracker).
+const STOP_MARGIN = 0.12;
 let _cratePhase = 0;
 let _simAnimRAF = null;
 function _simAnimTick(ts) {
@@ -6484,7 +6528,10 @@ function _flowMarks(pts, start, step, L) {
 
 // Small blue KLT crate used by the telemetry demo. It follows the conveyor
 // direction so the later live integration can reuse the same visual.
-function drawKltCrate(ctx, point) {
+// `waiting` (live/live-logs only): bedna stojí tesne pred ďalším čidlom a
+// čaká na potvrdenie z Kibany — jemne pulzujúci jantárový obrys ju odlíši od
+// bežného pohybu, aby to nepôsobilo ako zaseknutý/mŕtvy stav.
+function drawKltCrate(ctx, point, waiting) {
   ctx.save();
   ctx.translate(point.x, point.y);
   ctx.rotate(Math.atan2(point.uy, point.ux));
@@ -6501,6 +6548,12 @@ function drawKltCrate(ctx, point) {
   ctx.moveTo(-3, -6); ctx.lineTo(-3, 3);
   ctx.moveTo(2, -6); ctx.lineTo(2, 3);
   ctx.stroke();
+  if (waiting) {
+    const pulse = 0.45 + 0.4 * Math.sin(performance.now() / 400);
+    ctx.strokeStyle = `rgba(245,158,11,${pulse.toFixed(2)})`;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(-9, -8, 18, 13);
+  }
   ctx.restore();
 }
 function drawCanvasScene() {
@@ -6531,7 +6584,7 @@ function drawCanvasScene() {
   // Progress is distributed over the segment's edges; this is intentionally
   // independent of whether intermediate joiners emit their own telemetry.
   const demoCratesByEdge = new Map();
-  if (sim && (sim.mode === 'telemetry-demo' || sim.mode === 'live' || sim.mode === 'live-logs') && Array.isArray(sim.demoCrates)) {
+  if (sim && sim.mode === 'telemetry-demo' && Array.isArray(sim.demoCrates)) {
     sim.demoCrates.forEach(crate => {
       // Constant per-edge speed regardless of chain length (see CRATE_MS_PER_EDGE):
       // crate.offset spreads different crates' start position along their own chain.
@@ -6543,6 +6596,25 @@ function drawCanvasScene() {
       list.push({ progress: scaled - edgeIndex });
       demoCratesByEdge.set(edgeId, list);
     });
+  } else if (sim && (sim.mode === 'live' || sim.mode === 'live-logs') && state.boxTracker.size) {
+    // Reálne dáta z Kibany: bedna sa priblíži ku koncu svojho segmentu a
+    // zastane STOP_MARGIN pred koncovým uzlom, kým nepríde potvrdenie od
+    // nextAgent (viď updateBoxTracker) — na rozdiel od telemetria-demo sa
+    // pohyb neopakuje v nekonečnej slučke.
+    const nowMs = performance.now();
+    for (const [boxCode, box] of state.boxTracker) {
+      const n = box.edgeIds.length;
+      const elapsedEdges = (nowMs - box.legStartAt) / CRATE_MS_PER_EDGE;
+      const cap = box.terminal ? n : Math.max(0, n - STOP_MARGIN);
+      if (box.terminal && elapsedEdges >= n) { state.boxTracker.delete(boxCode); continue; }
+      const scaled = Math.min(elapsedEdges, cap);
+      const edgeIndex = Math.min(n - 1, Math.floor(scaled));
+      const edgeId = box.edgeIds[edgeIndex];
+      const waiting = !box.terminal && elapsedEdges >= cap;
+      const list = demoCratesByEdge.get(edgeId) || [];
+      list.push({ progress: scaled - edgeIndex, waiting });
+      demoCratesByEdge.set(edgeId, list);
+    }
   }
   // Plná kvalita i během interakce (LOD vypnuto). Vykreslení je dost rychlé
   // (chevrony dávkově, jeden stroke), takže pohyb zůstává svižný bez ztráty
@@ -6655,7 +6727,7 @@ function drawCanvasScene() {
       ctx.stroke();
       const demoCrates = demoCratesByEdge.get(edge.id) || [];
       demoCrates.forEach(crate => {
-        if (L > 18) drawKltCrate(ctx, _polyAt(pts, Math.max(4, Math.min(L - 4, L * crate.progress))));
+        if (L > 18) drawKltCrate(ctx, _polyAt(pts, Math.max(4, Math.min(L - 4, L * crate.progress))), crate.waiting);
       });
       // 4) info pilulka
       if (utilOn) {

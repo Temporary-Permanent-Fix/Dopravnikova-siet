@@ -65,6 +65,20 @@ export function passiveSegment(startEdgeId, layout, telemetryAgents) {
   return segment;
 }
 
+// Koncový uzol pasívneho segmentu: ak je to ďalšie telemetrické čidlo, bedna
+// naň môže vizuálne počkať na potvrdenie (nextAgent); inak (sink/error/
+// nejednoznačné vetvenie) niet na čo čakať a segment je terminálny. Zdieľané
+// medzi buildSnapshot (server aj browser-extension cesta) a server-side
+// mockSnapshot(), aby sa logika nerozišla.
+export function describeSegmentEnd(edgeIds, layout, telemetryAgents) {
+  const nodes = new Map(layout.nodes.map(node => [node.id, node]));
+  const edges = new Map(layout.edges.map(edge => [edge.id, edge]));
+  const lastEdge = edges.get(edgeIds[edgeIds.length - 1]);
+  const endNode = lastEdge ? nodes.get(lastEdge.to) : null;
+  const nextAgent = endNode && telemetryAgents.has(endNode.label) ? endNode.label : null;
+  return { nextAgent, terminal: !nextAgent };
+}
+
 export function buildSnapshot(documents, telemetry, layout, windowSeconds) {
   const mappings = telemetry.mappings || {};
   const ambiguousMappings = telemetry.ambiguousMappings || {};
@@ -109,7 +123,8 @@ export function buildSnapshot(documents, telemetry, layout, windowSeconds) {
       metric.ratePerHour += 3600 / windowSeconds;
       metric.lastEventAt = event.observedAt;
     });
-    boxes.push({ ...event, edgeId, edgeIds });
+    const { nextAgent, terminal } = describeSegmentEnd(edgeIds, layout, telemetryAgents);
+    boxes.push({ ...event, edgeId, edgeIds, nextAgent, terminal });
   });
 
   const allObservedAt = normalizedEvents.map(event => Date.parse(event.observedAt)).filter(Number.isFinite);

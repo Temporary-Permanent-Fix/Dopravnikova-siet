@@ -1,7 +1,7 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize, resolve } from 'node:path';
-import { buildSnapshot, elasticTemplates, passiveSegment } from '../src/live-events.mjs';
+import { buildSnapshot, describeSegmentEnd, elasticTemplates, passiveSegment } from '../src/live-events.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 const publicDir = join(root, 'src');
@@ -71,7 +71,8 @@ async function mockSnapshot() {
     });
     if (active) {
       const [agent, direction] = key.split(':');
-      boxCandidates.push({ boxCode: `DEMO-${String(index + 1).padStart(3, '0')}`, agent, direction: Number(direction), edgeId, edgeIds, observedAt: generatedAt });
+      const { nextAgent, terminal } = describeSegmentEnd(edgeIds, liveLayout, telemetryAgents);
+      boxCandidates.push({ boxCode: `DEMO-${String(index + 1).padStart(3, '0')}`, agent, direction: Number(direction), edgeId, edgeIds, nextAgent, terminal, observedAt: generatedAt });
     }
   });
   // Sample evenly across the whole mapping list instead of taking the first
