@@ -36,6 +36,21 @@ const NOISE_MUST_NOT = [
 let currentFilters = [];
 let currentQuery = '';
 
+// Typ udalosti (📦 box-routed / 🦾 arm-status / ✉ message / ❓ unknown-event)
+// — appka posiela kind-keys (svoj vlastný slovník zo src/live-events.mjs),
+// tu ich prekladáme na Kibana messageTemplate stringy. Kópia templatov je
+// zámerná (content script nemôže importovať ES modul appky) — musí zostať
+// v súlade s BOX_TEMPLATE/ARM_TEMPLATE/MESSAGE_TEMPLATE v src/live-events.mjs.
+const EVENT_TEMPLATES = {
+  'box-routed': "Box has been routed (boxCode='{BoxCode}'; direction={DirectionTo}).",
+  'arm-status': 'Arm status changed ({Arms})',
+  'message': 'Message received (messageId={Id}; clientId={ClientId}; topic={Topic};)'
+};
+const ALL_EVENT_KINDS = ['box-routed', 'arm-status', 'message', 'unknown-event'];
+// Chýbajúce/neplatné pole = "žiadny filter" (nie "blokuj všetko") — poistka
+// proti starému stavu appky/rozšírenia, ktoré eventKinds ešte neposiela.
+let currentEventKinds = ALL_EVENT_KINDS.slice();
+
 function buildQueryBody() {
   const positive = [];
   const negative = NOISE_MUST_NOT.slice();
@@ -48,6 +63,18 @@ function buildQueryBody() {
   }
   const filter = [...BASE_FILTER, ...positive, { bool: { must_not: negative } }];
   if (currentQuery) filter.push({ query_string: { query: currentQuery, default_field: 'message', lenient: true } });
+  if (currentEventKinds.length < ALL_EVENT_KINDS.length) {
+    const should = [];
+    for (const kind of currentEventKinds) {
+      if (kind === 'unknown-event') {
+        should.push({ bool: { must_not: { terms: { messageTemplate: Object.values(EVENT_TEMPLATES) } } } });
+      } else if (EVENT_TEMPLATES[kind]) {
+        should.push({ match_phrase: { messageTemplate: EVENT_TEMPLATES[kind] } });
+      }
+    }
+    // Prázdny `should` (operátor odškrtol všetky typy) úmyselne nevráti nič.
+    filter.push({ bool: { should, minimum_should_match: 1 } });
+  }
   return {
     size: 500,
     sort: [{ dateTime: 'desc' }],
@@ -60,6 +87,7 @@ chrome.runtime.onMessage.addListener(message => {
   if (message?.type !== 'sklc3-set-filters') return;
   currentFilters = Array.isArray(message.filters) ? message.filters : [];
   currentQuery = message.query || '';
+  currentEventKinds = Array.isArray(message.eventKinds) ? message.eventKinds : ALL_EVENT_KINDS.slice();
 });
 
 chrome.runtime.sendMessage({ type: 'sklc3-fetcher-ready' }, response => {
@@ -67,6 +95,7 @@ chrome.runtime.sendMessage({ type: 'sklc3-fetcher-ready' }, response => {
   if (response) {
     currentFilters = Array.isArray(response.filters) ? response.filters : [];
     currentQuery = response.query || '';
+    currentEventKinds = Array.isArray(response.eventKinds) ? response.eventKinds : ALL_EVENT_KINDS.slice();
   }
 });
 

@@ -147,4 +147,5 @@ export const elasticTemplates = [BOX_TEMPLATE, ARM_TEMPLATE, MESSAGE_TEMPLATE];
 
 if (typeof window !== 'undefined') {
   window.buildSnapshot = buildSnapshot;
+  window.normalizeLiveEvent = normalizeLiveEvent;
 }

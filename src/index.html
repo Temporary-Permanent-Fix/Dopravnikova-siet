@@ -1122,6 +1122,9 @@ body {
 .live-filter-panel .live-filter-status { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 8px; color: var(--text-secondary); margin-bottom: 8px; }
 .live-filter-panel .live-filter-query { display: flex; gap: 6px; margin-bottom: 8px; }
 .live-filter-panel .live-filter-query input { flex: 1; box-sizing: border-box; padding: 5px 8px; border: 1px solid var(--border-strong); border-radius: 5px; background: var(--surface); color: var(--text); font: 11px 'IBM Plex Mono', monospace; }
+.live-filter-panel .live-filter-event-kinds { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-bottom: 8px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 5px; background: var(--surface-secondary, var(--surface)); }
+.live-filter-panel .live-filter-event-kinds-label { color: var(--text-secondary); flex-basis: 100%; }
+.live-filter-panel .live-filter-event-kind { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
 .live-filter-panel .live-filter-pills { display: flex; flex-direction: column; gap: 5px; margin-bottom: 8px; }
 .live-filter-panel .live-filter-pill { display: flex; align-items: center; gap: 5px; }
 .live-filter-panel .live-filter-pill input[type="text"] { box-sizing: border-box; padding: 5px 8px; border: 1px solid var(--border-strong); border-radius: 5px; background: var(--surface); color: var(--text); font: 11px 'IBM Plex Mono', monospace; }
@@ -1141,6 +1144,8 @@ body {
   font: 11px 'IBM Plex Mono', monospace;
 }
 .live-logs-panel .live-logs-status { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 8px; color: var(--text-secondary); margin-bottom: 6px; }
+.live-logs-panel .live-logs-breakdown { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 8px; color: var(--text-secondary); margin-bottom: 8px; }
+.live-logs-panel .live-logs-breakdown-hint { color: var(--text-tertiary); font-style: italic; flex-basis: 100%; }
 .live-logs-panel .live-logs-table { width: 100%; border-collapse: collapse; max-height: 260px; display: block; overflow-y: auto; }
 .live-logs-panel .live-logs-table tr { border-top: 1px solid var(--border); }
 .live-logs-panel .live-logs-table tr:first-child { border-top: none; }
@@ -2596,6 +2601,7 @@ const state = {
   liveFilterQuery: '',    // voľný text (query_string na `message`)
   liveFilterPills: [],    // [{ field, value, negate }] — rovnako ako Kibana filter pills
   liveFilterSentAt: null, // kedy sa naposledy poslal filter do extension (status riadok)
+  liveEventKinds: ['box-routed', 'arm-status', 'message', 'unknown-event'], // typy udalostí, ktoré má extension preposielať (default = všetky)
   packingPercent: 7,
   dragWaypoint: null,
   viewport: { x: 0, y: 0, zoom: 1 },
@@ -3698,6 +3704,15 @@ function renderLiveLogsPanel() {
     `<span class="live-state ${statusCls}">${statusLabel}</span>` +
     (age != null ? `<span class="live-separator">·</span><span>vek ${formatAge(age)}</span>` : '') +
     `<span class="live-separator">·</span><span>${state.liveLogsRecords.size} záznamov</span>${errorLine}${notFoundHint}</div>`;
+  const kindCounts = { 'box-routed': 0, 'arm-status': 0, 'message': 0, 'unknown-event': 0 };
+  for (const record of state.liveLogsRecords.values()) {
+    const event = window.normalizeLiveEvent?.(record);
+    if (event && kindCounts.hasOwnProperty(event.kind)) kindCounts[event.kind] += 1;
+  }
+  const breakdownHtml = `<div class="live-logs-breakdown">` +
+      ALL_LIVE_EVENT_KINDS.map(kind => `<span>${escapeHtml(LIVE_EVENT_KIND_LABELS[kind])} ${kindCounts[kind]}</span>`).join('<span class="live-separator">·</span>') +
+      `<span class="live-logs-breakdown-hint">z prijatých záznamov — časť už mohla vylúčiť rozšírenie podľa nastaveného filtra</span>` +
+    `</div>`;
   const rows = [...state.liveLogsRecords.values()]
     .sort((a, b) => Date.parse(b.dateTime || 0) - Date.parse(a.dateTime || 0))
     .slice(0, LIVE_LOGS_MAX_RECORDS);
@@ -3713,7 +3728,7 @@ function renderLiveLogsPanel() {
         `<td class="lg-message">${escapeHtml(r.message || '')}</td>` +
       `</tr>`).join('')}</tbody></table>`
     : `<div class="live-logs-empty">Zatiaľ žiadne záznamy.</div>`;
-  el.innerHTML = statusHtml + bodyHtml;
+  el.innerHTML = statusHtml + breakdownHtml + bodyHtml;
 }
 
 function toggleLiveLogsPanel() {
@@ -3733,6 +3748,13 @@ function toggleLiveLogsPanel() {
 // kibana-fetcher.js (content script v karte Kibany), ktorý ich vrství nad
 // svoj vlastný ES dopyt. Pozri browser-extension/kibana-fetcher.js.
 const LIVE_FILTERS_STORAGE_KEY = 'sklc3LiveLogsFilters';
+const ALL_LIVE_EVENT_KINDS = ['box-routed', 'arm-status', 'message', 'unknown-event'];
+const LIVE_EVENT_KIND_LABELS = {
+  'box-routed': '📦 Box presunutý',
+  'arm-status': '🦾 Stav ramena',
+  'message': '✉ Správa',
+  'unknown-event': '❓ Neznáme'
+};
 
 function loadLiveLogsFilters() {
   try {
@@ -3745,12 +3767,21 @@ function loadLiveLogsFilters() {
         .filter(p => p && typeof p.field === 'string' && typeof p.value === 'string')
         .map(p => ({ field: p.field, value: p.value, negate: !!p.negate }));
     }
+    // Staré uložené filtre (pred pridaním typov udalostí) toto pole nemajú —
+    // vtedy zostáva default (všetky typy), nie prázdny výber.
+    if (Array.isArray(parsed.eventKinds)) {
+      state.liveEventKinds = parsed.eventKinds.filter(k => ALL_LIVE_EVENT_KINDS.includes(k));
+    }
   } catch (e) { /* poškodený/blokovaný localStorage — začni s prázdnym filtrom */ }
 }
 
 function saveLiveLogsFilters() {
   try {
-    localStorage.setItem(LIVE_FILTERS_STORAGE_KEY, JSON.stringify({ query: state.liveFilterQuery, pills: state.liveFilterPills }));
+    localStorage.setItem(LIVE_FILTERS_STORAGE_KEY, JSON.stringify({
+      query: state.liveFilterQuery,
+      pills: state.liveFilterPills,
+      eventKinds: state.liveEventKinds
+    }));
   } catch (e) { /* plný/blokovaný localStorage — filter naďalej funguje, len sa neuloží */ }
 }
 
@@ -3762,7 +3793,8 @@ function sendLiveLogsFilters() {
   window.postMessage({
     source: 'sklc3-app', type: 'set-filters',
     filters: activePills.map(p => ({ field: p.field.trim(), value: p.value.trim(), negate: !!p.negate })),
-    query: state.liveFilterQuery.trim()
+    query: state.liveFilterQuery.trim(),
+    eventKinds: state.liveEventKinds.slice()
   }, window.location.origin);
   state.liveFilterSentAt = new Date().toISOString();
 }
@@ -3784,9 +3816,21 @@ function removeLiveFilterPill(index) {
   renderLiveFilterPanel();
 }
 
+function toggleLiveEventKind(kind, checked) {
+  if (checked) {
+    if (!state.liveEventKinds.includes(kind)) state.liveEventKinds.push(kind);
+  } else {
+    state.liveEventKinds = state.liveEventKinds.filter(k => k !== kind);
+  }
+}
+
 function clearLiveLogsFilters() {
   state.liveFilterQuery = '';
   state.liveFilterPills = [];
+  // Reset na "všetky typy", nie na prázdny výber — prázdny výber teraz
+  // znamená "blokuj všetko" a po kliknutí "Vymazať" by operátor nečakane
+  // nedostával žiadne záznamy.
+  state.liveEventKinds = ALL_LIVE_EVENT_KINDS.slice();
   applyLiveLogsFilters();
 }
 
@@ -3805,6 +3849,12 @@ function renderLiveFilterPanel() {
   const queryHtml = `<div class="live-filter-query">` +
       `<input type="text" id="live-filter-query-input" placeholder="voľné hľadanie v message (ako Kibana query bar) — Enter = použiť" value="${escapeHtml(state.liveFilterQuery)}">` +
     `</div>`;
+  const eventKindsHtml = `<div class="live-filter-event-kinds">` +
+      `<span class="live-filter-event-kinds-label">Typy udalostí, ktoré sa majú preposielať:</span>` +
+      ALL_LIVE_EVENT_KINDS.map(kind => `
+        <label class="live-filter-event-kind"><input type="checkbox" data-role="event-kind" data-kind="${kind}" ${state.liveEventKinds.includes(kind) ? 'checked' : ''}> ${escapeHtml(LIVE_EVENT_KIND_LABELS[kind])}</label>`).join('') +
+      (state.liveEventKinds.length === 0 ? `<span class="live-error">Žiadny typ nie je zaškrtnutý — po použití sa neprepošlú žiadne záznamy.</span>` : '') +
+    `</div>`;
   const pillsHtml = state.liveFilterPills.length
     ? `<div class="live-filter-pills">${state.liveFilterPills.map((pill, index) => `
         <div class="live-filter-pill">
@@ -3819,7 +3869,7 @@ function renderLiveFilterPanel() {
       `<button class="btn btn-primary" type="button" id="live-filter-apply">Použiť filtre</button>` +
       `<button class="btn" type="button" id="live-filter-clear">Vymazať všetko</button>` +
     `</div>`;
-  el.innerHTML = statusHtml + queryHtml + pillsHtml + actionsHtml;
+  el.innerHTML = statusHtml + queryHtml + eventKindsHtml + pillsHtml + actionsHtml;
 
   const queryInput = document.getElementById('live-filter-query-input');
   queryInput?.addEventListener('change', e => { state.liveFilterQuery = e.target.value; });
@@ -3828,6 +3878,10 @@ function renderLiveFilterPanel() {
     state.liveFilterQuery = e.target.value;
     applyLiveLogsFilters();
   });
+  el.querySelectorAll('[data-role="event-kind"]').forEach(input => input.addEventListener('change', e => {
+    toggleLiveEventKind(e.target.dataset.kind, e.target.checked);
+    renderLiveFilterPanel();
+  }));
   document.getElementById('live-filter-add')?.addEventListener('click', addLiveFilterPill);
   document.getElementById('live-filter-apply')?.addEventListener('click', applyLiveLogsFilters);
   document.getElementById('live-filter-clear')?.addEventListener('click', clearLiveLogsFilters);

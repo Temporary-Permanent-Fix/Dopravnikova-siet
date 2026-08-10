@@ -34,6 +34,11 @@ window.addEventListener('message', event => {
   // Filter panel appky (pole/hodnota pills + textové vyhľadávanie) — pošli
   // ho na kibana-fetcher.js cez background.js, aby prepísal dopyt do ES.
   if (event.data.type === 'set-filters') {
-    chrome.runtime.sendMessage({ type: 'sklc3-set-filters', filters: event.data.filters || [], query: event.data.query || '' });
+    chrome.runtime.sendMessage({
+      type: 'sklc3-set-filters',
+      filters: event.data.filters || [],
+      query: event.data.query || '',
+      eventKinds: event.data.eventKinds || null
+    });
   }
 });

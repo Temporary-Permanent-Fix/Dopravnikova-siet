@@ -8,7 +8,7 @@ const APP_URL_PATTERNS = ['http://localhost:5173/*', 'http://127.0.0.1:5173/*', 
 const KIBANA_URL_PATTERNS = ['https://kibana.prod.alza.cz/*'];
 
 let lastMessage = null;
-let lastFilters = null; // { filters: [...], query: '' } — naposledy aplikovaný filter panel appky
+let lastFilters = null; // { filters: [...], query: '', eventKinds: [...] } — naposledy aplikovaný filter panel appky
 
 async function broadcastToTabs(patterns, message) {
   const tabs = await chrome.tabs.query({ url: patterns });
@@ -32,7 +32,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return false;
   }
   if (message?.type === 'sklc3-set-filters') {
-    lastFilters = { filters: Array.isArray(message.filters) ? message.filters : [], query: message.query || '' };
+    lastFilters = {
+      filters: Array.isArray(message.filters) ? message.filters : [],
+      query: message.query || '',
+      eventKinds: Array.isArray(message.eventKinds) ? message.eventKinds : null
+    };
     broadcastToTabs(KIBANA_URL_PATTERNS, { type: 'sklc3-set-filters', ...lastFilters });
     return false;
   }
