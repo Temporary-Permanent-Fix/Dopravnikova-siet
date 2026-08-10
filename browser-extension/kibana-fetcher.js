@@ -7,37 +7,68 @@
 const INDEX_PATTERN = 'p-lct-k8s-*';
 const POLL_INTERVAL_MS = 3000;
 
-// Presne overený dopyt (docs: `Робочий приклад запиту` zo zadania) — needny
-// meniť len ak sa zmenia filtre v Kibana Discover, nie kvôli refaktoru.
-const QUERY_BODY = {
-  size: 500,
-  sort: [{ dateTime: 'desc' }],
-  _source: ['dateTime', 'message', 'headers.x-AgentName', 'level', 'kubernetes.pod_name', 'time_key', 'messageTemplate', 'messageParams'],
-  query: {
-    bool: {
-      filter: [
-        { match_phrase: { 'kubernetes.pod_name': 'tms-multi-agent' } },
-        { exists: { field: 'message' } },
-        {
-          bool: {
-            must_not: [
-              { match_phrase: { message: '*update received*' } },
-              { match_phrase: { message: 'PLC heartbeat counter' } },
-              { match_phrase: { message: 'SEND rabbitmq://prd-rabbitmq-tmslct/RUR.TMS.Agent.RabbitMq.Contracts.Events:AgentHeartbeatEvent' } },
-              { match_phrase: { message: 'MQTT PLC heartbeat' } },
-              { match_phrase: { message: 'PLC heartbeat received' } },
-              { match_phrase: { message: 'RUR.TMS.Routing.Contracts.Events.HeartbeatEvent' } },
-              { match_phrase: { message: 'RUR.TMS.Routing.Contracts.Events.NodeOccupationChangedEvent' } },
-              { match_phrase: { message: 'RUR.TMS.Manager.RabbitMq.Contracts.Events.TmsLayoutUtilizationChangedEvent' } },
-              { match_phrase: { message: 'Message processing finished' } },
-              { match_phrase: { message: '*/diagnostics*' } }
-            ]
-          }
-        }
-      ]
-    }
+// Základ dopytu (docs: `Робочий приклад запиту` zo zadania) — needny meniť
+// len ak sa zmenia predpoklady, nie kvôli refaktoru. Nad týmto základom sa
+// vrstvia filtre nastavené v appke cez filtrovací panel (pozri
+// currentFilters/currentQuery nižšie) — appka posiela len POLE + HODNOTU
+// (+ negáciu), nie surové ES DSL, takže tu žiadna validácia untrusted
+// vstupu netreba (appka bežiaca lokálne u toho istého operátora).
+const BASE_FILTER = [
+  { match_phrase: { 'kubernetes.pod_name': 'tms-multi-agent' } },
+  { exists: { field: 'message' } }
+];
+const NOISE_MUST_NOT = [
+  { match_phrase: { message: '*update received*' } },
+  { match_phrase: { message: 'PLC heartbeat counter' } },
+  { match_phrase: { message: 'SEND rabbitmq://prd-rabbitmq-tmslct/RUR.TMS.Agent.RabbitMq.Contracts.Events:AgentHeartbeatEvent' } },
+  { match_phrase: { message: 'MQTT PLC heartbeat' } },
+  { match_phrase: { message: 'PLC heartbeat received' } },
+  { match_phrase: { message: 'RUR.TMS.Routing.Contracts.Events.HeartbeatEvent' } },
+  { match_phrase: { message: 'RUR.TMS.Routing.Contracts.Events.NodeOccupationChangedEvent' } },
+  { match_phrase: { message: 'RUR.TMS.Manager.RabbitMq.Contracts.Events.TmsLayoutUtilizationChangedEvent' } },
+  { match_phrase: { message: 'Message processing finished' } },
+  { match_phrase: { message: '*/diagnostics*' } }
+];
+
+// Filter panel appky (src/index.html) — pole+hodnota pills a voľný text.
+// Naplní sa handshakeom pri štarte (sklc3-fetcher-ready) a potom pri každej
+// zmene z appky (sklc3-set-filters, relayované cez background.js).
+let currentFilters = [];
+let currentQuery = '';
+
+function buildQueryBody() {
+  const positive = [];
+  const negative = NOISE_MUST_NOT.slice();
+  for (const item of currentFilters) {
+    const field = String(item?.field || '').trim();
+    const value = String(item?.value ?? '').trim();
+    if (!field || !value) continue;
+    const clause = { match_phrase: { [field]: value } };
+    (item.negate ? negative : positive).push(clause);
   }
-};
+  const filter = [...BASE_FILTER, ...positive, { bool: { must_not: negative } }];
+  if (currentQuery) filter.push({ query_string: { query: currentQuery, default_field: 'message', lenient: true } });
+  return {
+    size: 500,
+    sort: [{ dateTime: 'desc' }],
+    _source: ['dateTime', 'message', 'headers.x-AgentName', 'level', 'kubernetes.pod_name', 'time_key', 'messageTemplate', 'messageParams'],
+    query: { bool: { filter } }
+  };
+}
+
+chrome.runtime.onMessage.addListener(message => {
+  if (message?.type !== 'sklc3-set-filters') return;
+  currentFilters = Array.isArray(message.filters) ? message.filters : [];
+  currentQuery = message.query || '';
+});
+
+chrome.runtime.sendMessage({ type: 'sklc3-fetcher-ready' }, response => {
+  if (chrome.runtime.lastError) return; // service worker ešte nenabehol — appka pošle filter znova pri Apply
+  if (response) {
+    currentFilters = Array.isArray(response.filters) ? response.filters : [];
+    currentQuery = response.query || '';
+  }
+});
 
 const proxyUrl = `/api/console/proxy?path=${encodeURIComponent(`/${INDEX_PATTERN}/_search`)}&method=POST`;
 
@@ -60,7 +91,7 @@ async function fetchOnce() {
     method: 'POST',
     credentials: 'same-origin',
     headers: { 'kbn-xsrf': 'true', 'Content-Type': 'application/json' },
-    body: JSON.stringify(QUERY_BODY)
+    body: JSON.stringify(buildQueryBody())
   });
   if (!response.ok) {
     if (response.status === 401 || response.status === 403) {

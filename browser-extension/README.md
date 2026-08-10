@@ -10,17 +10,34 @@ prístup (Variant B) a nie priame ES pripojenie.
 
 - `kibana-fetcher.js` beží ako content script na `kibana.prod.alza.cz` a
   každé 3 sekundy volá `POST /api/console/proxy` (Kibana Dev Tools Console
-  proxy) s presne tým `_search` dopytom, ktorý bol ručne overený v Console.
+  proxy) s `_search` dopytom zloženým zo základu (rovnaký ako bol ručne
+  overený v Console) + filtrov nastavených v appke cez panel **🔎 Filter**.
   Funguje len pokým je karta s Kibanou otvorená a je aktívna prihlásená
   session.
-- `background.js` (service worker) je most: prijme dáta/chybu od
-  kibana-fetcher a rozošle ich do všetkých otvorených kariet appky.
-- `app-bridge.js` beží na `localhost:5173` a len preposiela prijaté dáta do
-  stránky cez `window.postMessage` — appka (`src/index.html`) si ich sama
-  vykreslí v paneli logov.
+- `background.js` (service worker) je obojsmerný most:
+  - kibana-fetcher.js → (logy/chyby) → rozošle do všetkých otvorených
+    kariet appky;
+  - appka → (filter panel) → rozošle do všetkých otvorených kariet Kibany.
+- `app-bridge.js` beží na `localhost:5173` a preposiela oba smery cez
+  `window.postMessage` — appka (`src/index.html`) si logy sama vykreslí v
+  paneli **📋 Live logs** a filter posiela z panelu **🔎 Filter**.
 
 Nikam sa neposiela API kľúč ani credentials mimo prehliadača — celý tok ide
-cez existujúcu Kibana session v prehliadači.
+cez existujúcu Kibana session v prehliadači. Appka posiela do rozšírenia len
+pole+hodnotu (+ negáciu) filtra, nikdy surové ES DSL.
+
+## Filtrovanie (panel 🔎 Filter v appke)
+
+Panel **🔎 Filter** v appke (vedľa **📋 Live logs**) umožňuje pridať
+filter-pills rovnako ako v Kibana Discover — pole (napr.
+`headers.x-AgentName`), hodnota (napr. `DS01S03`) a voliteľná negácia
+(NOT), plus voľné textové hľadanie v `message`. Po kliknutí **Použiť
+filtre** sa pošlú do `kibana-fetcher.js`, ktorý ich pridá nad svoj vlastný
+základný dopyt (`kubernetes.pod_name: tms-multi-agent` + fixný zoznam
+vylúčených heartbeat/diagnostic správ — ten sa cez appku meniť nedá).
+Filter sa ukladá aj do `localStorage` appky, takže po reloade appky sa
+znova odošle; ak sa reloadne až rozšírenie/karta Kibany, kibana-fetcher.js
+si ho pri štarte sám vypýta späť od `background.js`.
 
 ## Inštalácia (Chrome/Edge, rozbalené rozšírenie)
 

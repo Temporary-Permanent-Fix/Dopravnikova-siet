@@ -26,6 +26,14 @@ chrome.runtime.sendMessage({ type: 'sklc3-app-ready' }, response => {
 // než appka pridá svoj listener (document_start beží pred jej vlastným JS).
 window.addEventListener('message', event => {
   if (event.source !== window || event.origin !== window.location.origin) return;
-  if (event.data?.source !== 'sklc3-app' || event.data?.type !== 'request-snapshot') return;
-  if (cached) postToPage(cached);
+  if (event.data?.source !== 'sklc3-app') return;
+  if (event.data.type === 'request-snapshot') {
+    if (cached) postToPage(cached);
+    return;
+  }
+  // Filter panel appky (pole/hodnota pills + textové vyhľadávanie) — pošli
+  // ho na kibana-fetcher.js cez background.js, aby prepísal dopyt do ES.
+  if (event.data.type === 'set-filters') {
+    chrome.runtime.sendMessage({ type: 'sklc3-set-filters', filters: event.data.filters || [], query: event.data.query || '' });
+  }
 });

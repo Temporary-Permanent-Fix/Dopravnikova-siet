@@ -17,8 +17,22 @@ voľného poľa `message`.
 
 ## Kibana-link flow (vloženie filtra z Kibany)
 
+> **Poznámka (2026-08-10):** tlačidlá **● Live** a **🔗 Kibana link** boli z
+> `src/index.html` odstránené — v praxi bežala live vizualizácia takmer
+> vždy cez browser extension (Variant B, `browser-extension/`), pretože
+> `ELASTICSEARCH_URL` je interná k8s `.svc` adresa nedostupná mimo klastra
+> (pozri "Runbook" nižšie). Na ich mieste je teraz panel **🔎 Filter**, ktorý
+> filtruje **Live logs** (browser extension) — pozri
+> `browser-extension/README.md` sekcia "Filtrovanie". Popis nižšie zostáva
+> platný pre server-driven `/api/live/query`/`/api/live/config` endpointy
+> (stále funkčné a testované, len bez UI vstupu) — relevantné, ak appku
+> niekedy spustíš v sieti s priamym prístupom na ES (pozri Runbook).
+
 Namiesto (alebo popri) manuálneho vypĺňania časového okna sa dá dopyt/filter/
-auto-refresh prevziať priamo z Kibany, dvojkrokovo:
+auto-refresh prevziať priamo z Kibany, dvojkrokovo (POZOR: krok 1 nižšie
+opisuje UI tlačidlo, ktoré už v appke nie je — endpoint `POST
+/api/live/query` treba zavolať priamo, napr. cez `curl`, alebo znovu pridať
+UI podľa potreby):
 
 1. Operátor v appke klikne **🔗 Kibana link**, vloží Kibana base URL a appka
    ju otvorí v novej karte (`window.open`) — beží reálna Kibana relácia
