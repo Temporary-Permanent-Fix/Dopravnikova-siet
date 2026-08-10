@@ -2,21 +2,13 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize, resolve } from 'node:path';
 import { buildSnapshot, describeSegmentEnd, elasticTemplates, passiveSegment } from '../src/live-events.mjs';
+import { loadDotEnvFile } from './env-file.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 const publicDir = join(root, 'src');
 const pkg = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
 
-// Keep credentials out of the browser and out of git. A local server/.env is
-// optional; deployment environments supply the same values directly.
-try {
-  const envFile = await readFile(join(import.meta.dirname, '.env'), 'utf8');
-  envFile.split(/\r?\n/).forEach(line => {
-    const match = /^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*?)\s*$/.exec(line);
-    if (!match || match[1] in process.env) return;
-    process.env[match[1]] = match[2].replace(/^(['"])(.*)\1$/, '$2');
-  });
-} catch { /* server/.env is intentionally optional */ }
+await loadDotEnvFile(join(import.meta.dirname, '.env'));
 
 const port = Number(process.env.PORT || 5173);
 const host = process.env.HOST || '127.0.0.1';

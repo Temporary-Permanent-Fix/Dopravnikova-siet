@@ -1156,6 +1156,21 @@ body {
 .live-logs-panel .live-logs-table .lg-level.warn { color: #a16207; }
 .live-logs-panel .live-logs-table .lg-level.error { color: #b91c1c; }
 .live-logs-panel .live-logs-empty { color: var(--text-tertiary); font-style: italic; }
+.kibana-view-panel {
+  margin-top: 8px;
+  min-height: 70vh;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  position: relative;
+}
+.kibana-view-panel .kibana-view-hint {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  font: 11px 'IBM Plex Mono', monospace;
+  color: var(--text-tertiary);
+}
 @keyframes chevron-flow {
   from { transform: translateX(0); }
   to   { transform: translateX(22px); }
@@ -1746,9 +1761,10 @@ kbd {
           <button class="btn-sim" id="btn-simulate">▶ Rovnoměrné</button>
           <button class="btn-sim-opt" id="btn-optimize">⚙ Optimalizovat</button>
           <button class="btn-sim" id="btn-telemetry-demo" title="Demo pohybu podle doplněných Kibana směrů">▶ Demo pohyb</button>
-          <button class="btn-sim" id="btn-live-filter" title="Filtrovať Live logs rovnako ako pills v Kibana Discover (posiela sa do browser extension)">🔎 Filter</button>
-          <button class="btn-sim" id="btn-live-logs" title="Živé sirové logy tms-multi-agent (cez browser extension SKLC3 Live Logs Bridge)">📋 Live logs</button>
-          <button class="btn-sim" id="btn-live-logs-movement" title="Animácia KLT pohybu na plátne podľa živých dát z browser extension SKLC3 Live Logs Bridge">▶ Živý pohyb</button>
+          <button class="btn-sim" id="btn-live-filter" title="Filtrovať Live logs rovnako ako pills v Kibana Discover (posiela sa do vstavanej Kibana karty alebo browser extension)">🔎 Filter</button>
+          <button class="btn-sim" id="btn-live-logs" title="Živé sirové logy tms-multi-agent (cez vstavanú Kibana kartu alebo browser extension SKLC3 Live Logs Bridge)">📋 Live logs</button>
+          <button class="btn-sim" id="btn-live-logs-movement" title="Animácia KLT pohybu na plátne podľa živých dát z vstavanej Kibana karty alebo browser extension">▶ Živý pohyb</button>
+          <button class="btn-sim" id="btn-kibana-view" title="Vstavaná Kibana — prihlás sa priamo tu, appka z tejto session na pozadí číta dáta (nahrádza browser extension v desktop builde)">🌐 Kibana</button>
           <button class="btn-sim-export" id="btn-export-sim" disabled title="Nejdřív spusť Optimalizaci">⤓ TMS matice (CSV)</button>
           <button class="btn-sim-export" id="btn-export-assignment" disabled title="Nejdřív naimportuj trasy v Matici cílů">⤓ Cíl × trasa (CSV)</button>
           <div class="toolbar-dropdown" id="sim-tabs-settings-dropdown">
@@ -1760,6 +1776,7 @@ kbd {
               <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-live-filter" checked> 🔎 Filter</label>
               <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-live-logs" checked> 📋 Live logs</label>
               <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-live-logs-movement" checked> ▶ Živý pohyb</label>
+              <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-kibana-view" checked> 🌐 Kibana</label>
               <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-export-sim" checked> ⤓ TMS matice (CSV)</label>
               <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-export-assignment" checked> ⤓ Cíl × trasa (CSV)</label>
             </div>
@@ -1769,6 +1786,7 @@ kbd {
         <div class="sim-preflight" id="sim-preflight"></div>
         <div class="live-filter-panel" id="live-filter-panel" hidden aria-live="polite"></div>
         <div class="live-logs-panel" id="live-logs-panel" hidden aria-live="polite"></div>
+        <div class="kibana-view-panel" id="kibana-view-panel" hidden aria-live="polite"></div>
         <span class="sim-result" id="sim-result">
           <span class="empty">Rovnoměrné = každý uzel rozdělí tok stejnoměrně. Optimalizace = LP najde nejlepší rozdělení podle podílů cílů.</span>
         </span>
@@ -2594,9 +2612,11 @@ const state = {
   liveLogsUnmapped: [],  // posledné unmappedEvents z buildSnapshot() pre "Živý pohyb" (živý pohyb only)
   liveLogsStatus: 'idle', // idle | connected | error
   liveLogsLastError: null,
+  liveLogsLastErrorKind: null, // 'auth' | 'not-found' | 'http' | 'network' | null
   liveLogsLastUpdate: null,
   liveLogsWatchdog: null,
   liveLogsMovementActive: false,
+  kibanaViewOpen: false,
   liveFilterOpen: false,
   liveFilterQuery: '',    // voľný text (query_string na `message`)
   liveFilterPills: [],    // [{ field, value, negate }] — rovnako ako Kibana filter pills
@@ -3663,6 +3683,7 @@ function handleLiveLogsBridgeMessage(data) {
   if (data.type === 'sklc3-logs-snapshot') {
     state.liveLogsStatus = 'connected';
     state.liveLogsLastError = null;
+    state.liveLogsLastErrorKind = null;
     state.liveLogsLastUpdate = data.fetchedAt || new Date().toISOString();
     for (const record of data.records || []) {
       if (record?.id) state.liveLogsRecords.set(record.id, record);
@@ -3675,6 +3696,7 @@ function handleLiveLogsBridgeMessage(data) {
   } else if (data.type === 'sklc3-logs-error') {
     state.liveLogsStatus = 'error';
     state.liveLogsLastError = data.error?.message || 'Neznáma chyba';
+    state.liveLogsLastErrorKind = data.error?.kind || null;
     state.liveLogsLastUpdate = data.fetchedAt || new Date().toISOString();
   } else {
     return;
@@ -3690,15 +3712,22 @@ function renderLiveLogsPanel() {
   el.hidden = false;
   const status = state.liveLogsStatus;
   const age = secondsSince(state.liveLogsLastUpdate);
+  const hasEmbeddedKibana = Boolean(window.kibanaBridge);
   let statusLabel, statusCls;
   if (status === 'connected') { statusLabel = '● pripojené'; statusCls = 'ok'; }
   else if (status === 'error') { statusLabel = '● chyba'; statusCls = 'error'; }
-  else { statusLabel = '◌ čakám na rozšírenie SKLC3 Live Logs Bridge'; statusCls = 'waiting'; }
+  else { statusLabel = hasEmbeddedKibana ? '◌ čakám na vstavanú Kibana kartu' : '◌ čakám na rozšírenie SKLC3 Live Logs Bridge'; statusCls = 'waiting'; }
+  const loginPromptBtn = hasEmbeddedKibana
+    ? `<button class="btn-sim" id="btn-live-logs-open-kibana" type="button">🌐 Otvoriť Kibana kartu</button>`
+    : '';
   const errorLine = status === 'error'
-    ? `<span class="live-error">Chyba: ${escapeHtml(state.liveLogsLastError || '')}</span>`
+    ? `<span class="live-error">Chyba: ${escapeHtml(state.liveLogsLastError || '')}</span>` +
+      (state.liveLogsLastErrorKind === 'auth' ? loginPromptBtn : '')
     : '';
   const notFoundHint = status === 'idle'
-    ? `<span class="live-error">Otvorte a prihláste sa do https://kibana.prod.alza.cz v inej karte — inak rozšírenie nemá odkiaľ čítať dáta.</span>`
+    ? (hasEmbeddedKibana
+        ? `<span class="live-error">Prepnite sa na kartu 🌐 Kibana a prihláste sa.</span>${loginPromptBtn}`
+        : `<span class="live-error">Otvorte a prihláste sa do https://kibana.prod.alza.cz v inej karte — inak rozšírenie nemá odkiaľ čítať dáta.</span>`)
     : '';
   const statusHtml = `<div class="live-logs-status">` +
     `<span class="live-state ${statusCls}">${statusLabel}</span>` +
@@ -3729,6 +3758,9 @@ function renderLiveLogsPanel() {
       `</tr>`).join('')}</tbody></table>`
     : `<div class="live-logs-empty">Zatiaľ žiadne záznamy.</div>`;
   el.innerHTML = statusHtml + breakdownHtml + bodyHtml;
+  document.getElementById('btn-live-logs-open-kibana')?.addEventListener('click', () => {
+    if (!state.kibanaViewOpen) toggleKibanaViewPanel();
+  });
 }
 
 function toggleLiveLogsPanel() {
@@ -3790,12 +3822,13 @@ function saveLiveLogsFilters() {
 // použitý filter aj po reloade Kibana karty/rozšírenia.
 function sendLiveLogsFilters() {
   const activePills = state.liveFilterPills.filter(p => p.field.trim() && p.value.trim());
-  window.postMessage({
-    source: 'sklc3-app', type: 'set-filters',
+  const filterPayload = {
     filters: activePills.map(p => ({ field: p.field.trim(), value: p.value.trim(), negate: !!p.negate })),
     query: state.liveFilterQuery.trim(),
     eventKinds: state.liveEventKinds.slice()
-  }, window.location.origin);
+  };
+  window.postMessage({ source: 'sklc3-app', type: 'set-filters', ...filterPayload }, window.location.origin);
+  window.kibanaBridge?.setFilters(filterPayload);
   state.liveFilterSentAt = new Date().toISOString();
 }
 
@@ -3896,6 +3929,32 @@ function toggleLiveFilterPanel() {
   const btn = document.getElementById('btn-live-filter');
   if (btn) btn.classList.toggle('active', state.liveFilterOpen);
   renderLiveFilterPanel();
+}
+
+// Vstavaná Kibana (🌐) — natívny WebContentsView z electron/main.mjs sa
+// prekrýva nad #kibana-view-panel; DOM panel len nesie layout (rozmery/
+// pozíciu), samotný obsah appka nevykresľuje. Mimo Electronu (web/
+// Codespaces) je tlačidlo neaktívne — pozri `if (window.kibanaBridge)` nižšie.
+function syncKibanaViewBounds() {
+  if (!window.kibanaBridge || !state.kibanaViewOpen) return;
+  const el = document.getElementById('kibana-view-panel');
+  if (!el) return;
+  const rect = el.getBoundingClientRect();
+  window.kibanaBridge.setViewBounds({ x: rect.left, y: rect.top, width: rect.width, height: rect.height });
+}
+
+function toggleKibanaViewPanel() {
+  state.kibanaViewOpen = !state.kibanaViewOpen;
+  const btn = document.getElementById('btn-kibana-view');
+  if (btn) btn.classList.toggle('active', state.kibanaViewOpen);
+  const el = document.getElementById('kibana-view-panel');
+  if (el) el.hidden = !state.kibanaViewOpen;
+  if (!window.kibanaBridge) {
+    if (el) el.innerHTML = `<span class="kibana-view-hint">Vstavaná Kibana je dostupná len v desktop (Electron) builde appky — tu použi panel 📋 Live logs s browser extension.</span>`;
+    return;
+  }
+  window.kibanaBridge.setViewVisible(state.kibanaViewOpen);
+  if (state.kibanaViewOpen) syncKibanaViewBounds();
 }
 
 function passiveSegmentFromEdge(startEdgeId, telemetryAgents) {
@@ -8502,6 +8561,22 @@ window.addEventListener('message', event => {
   handleLiveLogsBridgeMessage(event.data);
 });
 
+// Vstavaná Kibana karta (Electron) — náhrada za window.postMessage bridge
+// vyššie, keď appka beží v desktop builde. window.kibanaBridge ho vystavuje
+// preload.cjs (contextBridge); v bežnom prehliadači/Codespaces neexistuje a
+// tento blok sa preskočí, extension tok vyššie zostáva jediným zdrojom.
+if (window.kibanaBridge) {
+  window.kibanaBridge.onSnapshot(payload => handleLiveLogsBridgeMessage({ type: 'sklc3-logs-snapshot', ...payload }));
+  window.kibanaBridge.onError(payload => handleLiveLogsBridgeMessage({ type: 'sklc3-logs-error', ...payload }));
+  window.kibanaBridge.getLastSnapshot().then(msg => { if (msg) handleLiveLogsBridgeMessage(msg); });
+  document.getElementById('btn-kibana-view')?.addEventListener('click', toggleKibanaViewPanel);
+  const kibanaPanelEl = document.getElementById('kibana-view-panel');
+  if (kibanaPanelEl && window.ResizeObserver) {
+    new ResizeObserver(syncKibanaViewBounds).observe(kibanaPanelEl);
+  }
+  window.addEventListener('resize', syncKibanaViewBounds);
+}
+
 document.getElementById('btn-live-filter').addEventListener('click', toggleLiveFilterPanel);
 loadLiveLogsFilters();
 sendLiveLogsFilters();
@@ -8511,7 +8586,7 @@ document.getElementById('btn-export-assignment').addEventListener('click', expor
 
 // Skrývání jednotlivých tlačítek spodního sim panelu (perzistováno v localStorage).
 const SIM_TABS_STORAGE_KEY = 'sklc3SimPanelHiddenTabs';
-const SIM_TAB_IDS = ['btn-simulate', 'btn-optimize', 'btn-telemetry-demo', 'btn-live-filter', 'btn-live-logs', 'btn-live-logs-movement', 'btn-export-sim', 'btn-export-assignment'];
+const SIM_TAB_IDS = ['btn-simulate', 'btn-optimize', 'btn-telemetry-demo', 'btn-live-filter', 'btn-live-logs', 'btn-live-logs-movement', 'btn-kibana-view', 'btn-export-sim', 'btn-export-assignment'];
 function getHiddenSimTabs() {
   try { return new Set(JSON.parse(localStorage.getItem(SIM_TABS_STORAGE_KEY) || '[]')); } catch (e) { return new Set(); }
 }

@@ -2,6 +2,16 @@
 
 Formát vychází z [Keep a Changelog](https://keepachangelog.com/), verze podle [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH — pravidlo bumpu viz `AGENTS.md`).
 
+## [2.0.0] - 2026-08-10
+
+- Pridaná Electron desktop shell (`electron/`) so vstavanou Kibana kartou
+  (🌐 Kibana v spodnom sim paneli) — operátor sa prihlási priamo v appke,
+  appka na pozadí z tej istej session dopytuje dáta cez `executeJavaScript`
+  (rovnaká technika ako predtým content script), bez nutnosti externej karty
+  a browser extension. Spustenie: `npm run electron:dev`.
+- `browser-extension/` ponechané bezo zmeny ako fallback pre web/Codespaces
+  nasadenie appky bez Electronu (`npm start`).
+
 ## [1.0.0] - 2026-08-10
 
 - Zavedení verziování aplikace (`package.json` `version`, `/api/version`, badge v hlavičce).

@@ -1,14 +1,19 @@
 {
   "name": "sklc3-live-visualization",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
+  "main": "electron/main.mjs",
   "engines": {
     "node": ">=20.11.0"
   },
   "scripts": {
     "dev": "node server/index.mjs",
     "start": "node server/index.mjs",
-    "test": "node --test server/*.test.mjs"
+    "electron:dev": "electron .",
+    "test": "node --test server/*.test.mjs electron/*.test.mjs"
+  },
+  "devDependencies": {
+    "electron": "^32.0.0"
   }
 }
