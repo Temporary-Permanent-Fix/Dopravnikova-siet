@@ -3934,7 +3934,7 @@ function toggleLiveFilterPanel() {
 // Vstavaná Kibana (🌐) — natívny WebContentsView z electron/main.mjs sa
 // prekrýva nad #kibana-view-panel; DOM panel len nesie layout (rozmery/
 // pozíciu), samotný obsah appka nevykresľuje. Mimo Electronu (web/
-// Codespaces) je tlačidlo neaktívne — pozri `if (window.kibanaBridge)` nižšie.
+// Codespaces) toggleKibanaViewPanel() namiesto view zobrazí vysvetľujúci hint.
 function syncKibanaViewBounds() {
   if (!window.kibanaBridge || !state.kibanaViewOpen) return;
   const el = document.getElementById('kibana-view-panel');
@@ -8563,13 +8563,14 @@ window.addEventListener('message', event => {
 
 // Vstavaná Kibana karta (Electron) — náhrada za window.postMessage bridge
 // vyššie, keď appka beží v desktop builde. window.kibanaBridge ho vystavuje
-// preload.cjs (contextBridge); v bežnom prehliadači/Codespaces neexistuje a
-// tento blok sa preskočí, extension tok vyššie zostáva jediným zdrojom.
+// preload.cjs (contextBridge); v bežnom prehliadači/Codespaces neexistuje,
+// vtedy toggleKibanaViewPanel() zobrazí len vysvetľujúci hint namiesto
+// natívneho view — tlačidlo preto treba zapojiť vždy, nielen keď bridge existuje.
+document.getElementById('btn-kibana-view')?.addEventListener('click', toggleKibanaViewPanel);
 if (window.kibanaBridge) {
   window.kibanaBridge.onSnapshot(payload => handleLiveLogsBridgeMessage({ type: 'sklc3-logs-snapshot', ...payload }));
   window.kibanaBridge.onError(payload => handleLiveLogsBridgeMessage({ type: 'sklc3-logs-error', ...payload }));
   window.kibanaBridge.getLastSnapshot().then(msg => { if (msg) handleLiveLogsBridgeMessage(msg); });
-  document.getElementById('btn-kibana-view')?.addEventListener('click', toggleKibanaViewPanel);
   const kibanaPanelEl = document.getElementById('kibana-view-panel');
   if (kibanaPanelEl && window.ResizeObserver) {
     new ResizeObserver(syncKibanaViewBounds).observe(kibanaPanelEl);
