@@ -1649,6 +1649,7 @@ kbd {
           <button class="dropdown-item" id="btn-calc-matrix" title="Kalkulační matice zdrojů — výpočet rate (j/h) z celkového počtu SJL"><i class="ti ti-calculator"></i>Matice zdrojů</button>
           <button class="dropdown-item" id="btn-calc-matrix-sinks" title="Kalkulační matice cílů — výpočet share (%) přes skupiny cílů"><i class="ti ti-calculator-off"></i>Matice cílů</button>
           <button class="dropdown-item" id="btn-bulk-actions" title="Obecné akce — kapacita dopravníků, balení, kotvy"><i class="ti ti-adjustments"></i>Obecné akce</button>
+          <button class="dropdown-item" id="btn-export-telemetry" title="Exportovat Kibana směry nastavené na diverterech/sorterech do sklc3-telemetry.json — nahraď soubor a nasaď na produkci"><i class="ti ti-route"></i>Export Kibana směrů</button>
         </div>
       </div>
       <div class="spacer"></div>
@@ -3884,6 +3885,104 @@ async function loadTelemetryMapping() {
   const response = await fetch('./sklc3-telemetry.json', { cache: 'no-store' });
   if (!response.ok) throw new Error('HTTP ' + response.status);
   return response.json();
+}
+
+// Prefill edge.properties.kibanaDirection z uloženého sklc3-telemetry.json
+// (mappings + ambiguousMappings), aby inspektor divertera/sorteru po
+// "Načíst SKLC3" ukázal aktuálně nasazené Kibana směry. Volá se best-effort —
+// chybějící/prázdný soubor není chyba, editace zůstane nevyplněná.
+function applyTelemetryMappingToEdges(mappingData) {
+  const edgeById = new Map(state.edges.map(e => [e.id, e]));
+  let applied = 0;
+  Object.entries(mappingData.mappings || {}).forEach(([key, edgeId]) => {
+    const edge = edgeById.get(edgeId);
+    if (!edge) return;
+    const direction = key.split(':').pop();
+    edge.properties.kibanaDirection = direction;
+    applied++;
+  });
+  Object.entries(mappingData.ambiguousMappings || {}).forEach(([key, edgeIds]) => {
+    const direction = key.split(':').pop();
+    (edgeIds || []).forEach(edgeId => {
+      const edge = edgeById.get(edgeId);
+      if (!edge) return;
+      edge.properties.kibanaDirection = direction;
+      applied++;
+    });
+  });
+  return applied;
+}
+
+// Postaví strukturu shodnou s data/sklc3-telemetry-mapping.md → src/sklc3-telemetry.json
+// ({mappings, ambiguousMappings}) z hodnot nastavených v inspektoru divertera/
+// sorteru (edge.properties.kibanaDirection). Klíč je "LabelUzlu:smer" — pokud
+// z jednoho uzlu vede na stejný Kibana směr víc hran (reálná nejednoznačnost,
+// stejně jako v původních datech), skončí jako ambiguousMappings[key]=[edgeId,...]
+// místo mappings[key]=edgeId.
+function buildTelemetryMapping() {
+  const groups = new Map();
+  state.nodes.forEach(node => {
+    if (node.type !== 'diverter' && node.type !== 'sorter') return;
+    state.edges.filter(e => e.from === node.id).forEach(edge => {
+      const dir = (edge.properties.kibanaDirection ?? '').toString().trim();
+      if (!dir) return;
+      const key = `${node.label}:${dir}`;
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(edge.id);
+    });
+  });
+  const mappings = {}, ambiguousMappings = {};
+  groups.forEach((edgeIds, key) => {
+    if (edgeIds.length === 1) mappings[key] = edgeIds[0];
+    else ambiguousMappings[key] = edgeIds;
+  });
+  return { mappings, ambiguousMappings };
+}
+
+function exportTelemetryMapping() {
+  const data = buildTelemetryMapping();
+  const mappedCount = Object.keys(data.mappings).length +
+    Object.values(data.ambiguousMappings).reduce((sum, ids) => sum + ids.length, 0);
+  if (!mappedCount) { flash('✗ Žádný diverter/sorter nemá vyplněný Kibana směr'); return; }
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'sklc3-telemetry.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  flash(`✓ Exportováno ${mappedCount} Kibana směrů · nahraď src/sklc3-telemetry.json a nasaď na produkci`);
+}
+
+// Renderuje seznam výstupních hran divertera/sorteru s inputem pro Kibana
+// směr (edge.properties.kibanaDirection) — zobrazí se v inspektoru uzlu.
+function kibanaDirectionFieldsHtml(node) {
+  const outgoing = state.edges.filter(e => e.from === node.id);
+  if (outgoing.length === 0) {
+    return `<div class="field" style="grid-column: 1 / -1;"><span style="font-size:11px; color:var(--text-tertiary);">Uzel zatím nemá výstupní hrany — nejdřív ho propoj s dalšími uzly.</span></div>`;
+  }
+  const counts = {};
+  outgoing.forEach(e => {
+    const dir = (e.properties.kibanaDirection ?? '').toString().trim();
+    if (dir) counts[dir] = (counts[dir] || 0) + 1;
+  });
+  const rows = outgoing.map(e => {
+    const dest = getNode(e.to);
+    const destLabel = dest ? dest.label : '(neznámý cíl)';
+    const dir = (e.properties.kibanaDirection ?? '').toString();
+    const isDup = dir.trim() && counts[dir.trim()] > 1;
+    return `<div class="kibana-dir-row" style="display:flex; align-items:center; gap:8px; padding:6px 8px; background:var(--bg-soft); border-radius:6px;">
+      <span style="font-family:monospace; font-size:11px; color:var(--text-tertiary); min-width:32px;">${escapeHtml(e.id)}</span>
+      <span style="flex:1; font-size:12.5px;">→ <strong>${escapeHtml(destLabel)}</strong></span>
+      <input type="number" class="prop-kibana-dir" data-edge-id="${escapeHtml(e.id)}" placeholder="smer" style="width:72px;" value="${escapeHtml(dir)}">
+      <span title="${isDup ? 'Stejný Kibana směr má i jiná hrana z tohoto uzlu — při exportu půjde jako ambiguousMapping' : ''}" style="width:14px; color:#a35a00; font-size:13px;">${isDup ? '⚠' : ''}</span>
+    </div>`;
+  }).join('');
+  return `<div class="field" style="grid-column: 1 / -1;">
+    <label>Kibana směry výstupů <span style="font-weight:400; color:var(--text-tertiary); font-size:11px;">— podle nich appka pozná, která hrana odpovídá kterému směru z Kibany</span></label>
+    <div style="display:flex; flex-direction:column; gap:5px; margin-top:4px;">${rows}</div>
+  </div>`;
 }
 
 async function toggleTelemetryDemo() {
@@ -7580,12 +7679,15 @@ function updateProps() {
       `;
     } else if (node.type === 'station') {
       extra = `<div class="field"><label>Kapacita balící stanice (j/h)</label><input type="number" id="prop-cap" min="0" step="50" value="${node.properties.capacity ?? 2000}"></div>`;
+    } else if (node.type === 'diverter') {
+      extra = kibanaDirectionFieldsHtml(node);
     } else if (node.type === 'sorter') {
       // Sorter — jediný uzel, který smí dělit tok. Poměry dělení podle tras
       // (z importovaného CSV) se napojí do optimalizace ve fázi 3. Zatím dělí
       // tok volně (optimalizátor rozhodne) — stejně jako junkce.
       extra = `
-        <div class="field" style="grid-column: 1 / -1;"><span style="font-size:11px; color:var(--node-sorter-stroke); padding:6px 10px; background:#eaedfb; border-radius:6px; display:inline-block; line-height:1.5;"><strong>Sorter</strong> — třídič, jediný uzel který smí <strong>dělit tok</strong> na více výstupů. Poměry dělení podle tras se nastaví přes <strong>Matici cílů → import CSV</strong>.</span></div>`;
+        <div class="field" style="grid-column: 1 / -1;"><span style="font-size:11px; color:var(--node-sorter-stroke); padding:6px 10px; background:#eaedfb; border-radius:6px; display:inline-block; line-height:1.5;"><strong>Sorter</strong> — třídič, jediný uzel který smí <strong>dělit tok</strong> na více výstupů. Poměry dělení podle tras se nastaví přes <strong>Matici cílů → import CSV</strong>.</span></div>` +
+        kibanaDirectionFieldsHtml(node);
     } else if (node.type === 'portal') {
       const availablePartners = state.nodes.filter(n =>
         n.type === 'portal' && n.id !== node.id && n.floor !== node.floor &&
@@ -7740,6 +7842,19 @@ function updateProps() {
       flash('Velikost vrácena na default');
       render(); updateProps();
     });
+
+    if (node.type === 'diverter' || node.type === 'sorter') {
+      propsEl.querySelectorAll('.prop-kibana-dir').forEach(input => {
+        input.addEventListener('input', e => {
+          const kEdge = state.edges.find(x => x.id === e.target.dataset.edgeId);
+          if (!kEdge) return;
+          const v = e.target.value.trim();
+          if (v) kEdge.properties.kibanaDirection = v; else delete kEdge.properties.kibanaDirection;
+        });
+        // Po opuštění pole přerenderuj — dopočítá se ⚠ značka duplicitního směru.
+        input.addEventListener('change', () => updateProps());
+      });
+    }
 
     if (node.type === 'portal') {
       document.getElementById('prop-partner').addEventListener('change', e => {
@@ -8328,6 +8443,8 @@ document.getElementById('btn-export').addEventListener('click', () => {
 document.getElementById('btn-import').addEventListener('click', () => {
   document.getElementById('file-input').click();
 });
+
+document.getElementById('btn-export-telemetry').addEventListener('click', exportTelemetryMapping);
 
 document.getElementById('btn-undo').addEventListener('click', () => {
   undo();
@@ -9094,6 +9211,14 @@ async function loadSKLC3() {
     pushUndo();
     applySKLC3(data);
     if (renamed > 0) flash('⚠ SKLC3 malo duplicitní ID hran; ' + renamed + ' bolo opravených.');
+    // Best-effort: předvyplnit Kibana směry z aktuálně nasazeného
+    // sklc3-telemetry.json, ať editace divertera/sorteru startuje z
+    // produkčního stavu. Chybějící/prázdný soubor není chyba.
+    try {
+      const mappingData = await loadTelemetryMapping();
+      const applied = applyTelemetryMappingToEdges(mappingData);
+      if (applied > 0) flash('✓ Předvyplněno ' + applied + ' Kibana směrů ze sklc3-telemetry.json');
+    } catch (err) { /* sklc3-telemetry.json chybí nebo je prázdný — v pořádku */ }
   } catch (err) {
     flash('✗ Nepodařilo se načíst SKLC3: ' + err.message);
   }
