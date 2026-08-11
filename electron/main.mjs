@@ -18,9 +18,12 @@ let poller = null;
 let lastKibanaBounds = { x: 0, y: 0, width: 0, height: 0 };
 
 function startServerProcess() {
+  // process.execPath is the Electron binary, not plain node. In a packaged
+  // app it ignores serverEntry and just reloads main.mjs again (a second
+  // full app instance) unless we force Node-only mode via this env var.
   serverProcess = spawn(process.execPath, [serverEntry], {
     stdio: 'inherit',
-    env: process.env
+    env: { ...process.env, ELECTRON_RUN_AS_NODE: '1' }
   });
   serverProcess.on('exit', (code) => {
     serverProcess = null;
