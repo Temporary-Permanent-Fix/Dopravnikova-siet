@@ -86,19 +86,24 @@ export function buildProxyUrl(indexPattern) {
 // fetch() uses that page's own session cookies. Returns a plain, structured-
 // clone-safe result object instead of throwing, since executeJavaScript
 // rejections are awkward to classify on the Node side.
-export function buildInPageFetchScript(proxyUrl, bodyJson) {
+export function buildInPageFetchScript(proxyUrl, bodyJson, timeoutMs = 10000) {
   return `(async () => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), ${JSON.stringify(timeoutMs)});
     try {
       const r = await fetch(${JSON.stringify(proxyUrl)}, {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'kbn-xsrf': 'true', 'Content-Type': 'application/json' },
-        body: ${JSON.stringify(bodyJson)}
+        body: ${JSON.stringify(bodyJson)},
+        signal: controller.signal
       });
       if (!r.ok) return { ok: false, status: r.status };
       return { ok: true, body: await r.json() };
     } catch (e) {
       return { ok: false, networkError: String((e && e.message) || e) };
+    } finally {
+      clearTimeout(timer);
     }
   })()`;
 }
@@ -129,6 +134,7 @@ export function createKibanaPoller({ getWebContents, indexPattern, intervalMs, o
   let currentEventKinds = ALL_EVENT_KINDS.slice();
   let lastMessage = null;
   let timer = null;
+  let inFlight = false;
 
   function setFilters({ filters, query, eventKinds } = {}) {
     currentFilters = Array.isArray(filters) ? filters : [];
@@ -137,6 +143,19 @@ export function createKibanaPoller({ getWebContents, indexPattern, intervalMs, o
   }
 
   async function poll() {
+    // The in-page fetch has its own timeout, but skip overlap anyway so a
+    // slow Kibana can't pile up concurrent executeJavaScript calls in the
+    // renderer (that's what was ballooning memory before the timeout existed).
+    if (inFlight) return;
+    inFlight = true;
+    try {
+      await runPoll();
+    } finally {
+      inFlight = false;
+    }
+  }
+
+  async function runPoll() {
     const fetchedAt = new Date().toISOString();
     const webContents = getWebContents();
     if (!webContents || webContents.isDestroyed()) return;

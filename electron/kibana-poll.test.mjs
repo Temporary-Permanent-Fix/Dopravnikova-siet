@@ -129,12 +129,42 @@ test('createKibanaPoller reports an auth error and keeps it as the last message'
   assert.equal(poller.getLastMessage().type, 'sklc3-logs-error');
 });
 
+test('createKibanaPoller skips a tick instead of stacking concurrent executeJavaScript calls', async () => {
+  let callCount = 0;
+  let concurrent = 0;
+  let maxConcurrent = 0;
+  const fakeWebContents = {
+    isDestroyed: () => false,
+    executeJavaScript: async () => {
+      callCount++;
+      concurrent++;
+      maxConcurrent = Math.max(maxConcurrent, concurrent);
+      // Simulate a stalled Kibana request that outlives several poll intervals.
+      await new Promise(r => setTimeout(r, 120));
+      concurrent--;
+      return { ok: true, body: { hits: { hits: [] } } };
+    }
+  };
+  const poller = createKibanaPoller({
+    getWebContents: () => fakeWebContents,
+    indexPattern: 'p-lct-k8s-*',
+    intervalMs: 20,
+    onSnapshot: () => {},
+    onError: () => {}
+  });
+  poller.start();
+  await new Promise(r => setTimeout(r, 260));
+  poller.stop();
+  assert.equal(maxConcurrent, 1);
+  assert.ok(callCount <= 3, `expected only a few polls to actually run, got ${callCount}`);
+});
+
 test('createKibanaPoller.setFilters feeds into the next built query', async () => {
   let capturedBody = null;
   const fakeWebContents = {
     isDestroyed: () => false,
     executeJavaScript: async script => {
-      const match = /body: (".*")\s*\}\);/s.exec(script);
+      const match = /body: (".*"),/s.exec(script);
       capturedBody = JSON.parse(JSON.parse(match[1]));
       return { ok: true, body: { hits: { hits: [] } } };
     }
