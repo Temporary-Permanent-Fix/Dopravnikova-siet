@@ -2,9 +2,9 @@
 
 Prenáša živé logy pod `tms-multi-agent` (index `p-lct-k8s-*`) zo session
 Kibany (`https://kibana.prod.alza.cz`) do appky Editor dopravníkovej siete
-(`http://localhost:5173`), bez API kľúča a bez backend zmien — pozri
-`docs/kibana-live-validation.md` v koreni repa pre kontext, prečo tento
-prístup (Variant B) a nie priame ES pripojenie.
+(`http://localhost:5173`), bez API kľúča a bez backend zmien — dáta idú
+výhradne cez existujúcu prihlásenú Kibana session v prehliadači, appka ani
+server žiadny API kľúč nemajú ani nepotrebujú.
 
 ## Ako to funguje
 
@@ -101,7 +101,6 @@ Po akejkoľvek zmene zdrojového súboru treba rozšírenie ručne **Reload**-n�
 - Neoficiálny internal API (`/api/console/proxy`) — Elastic ho môže
   kedykoľvek zmeniť bez upozornenia.
 - Funguje len pokým je karta s Kibanou otvorená a session aktívna — nie je
-  to nezávislý/serverový zdroj dát (na to je Variant A, pozri
-  `docs/elasticsearch-api-key-p-lct-k8s.md`).
+  to nezávislý/serverový zdroj dát.
 - Zdieľané/globálne pre appku — ak je otvorených viac kariet appky, všetky
   dostanú rovnaký stream.

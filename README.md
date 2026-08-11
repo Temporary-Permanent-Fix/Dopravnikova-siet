@@ -1,23 +1,24 @@
 # Editor dopravníkové sítě
 
-Desktopový nástroj (Tauri 2) na editáciu layoutu dopravníkovej / triediacej
-siete — uzly a hrany naprieč podlažiami skladu, s optimalizáciou cez LP solver.
-
-Verzia obnovená zo skompilovaného buildu **0.3.2-BETA**. Detaily obnovy: `RECOVERY-README.md`.
+Desktopový nástroj (Electron) na editáciu layoutu dopravníkovej / triediacej
+siete — uzly a hrany naprieč podlažiami skladu, s optimalizáciou cez LP solver
+a živým napojením na Kibana logy cez vstavanú kartu.
 
 ## Štruktúra
 
-    src/                     front-end (Tauri frontendDist)
-      index.html             celá appka (HTML + CSS + JS v jednom súbore)
-      tauri-integration.js   stub (pôvodný IPC glue sa neobnovil celý)
-      assets/
-        alza_cz.png          logo (obnovené)
-        fonts/               IBM Plex + Tabler Icons (vendorované z npm, viď README vnútri)
-      highs/build/           HiGHS wasm (vendorované z npm, viď README vnútri)
+    electron/                 desktop shell (main proces, Kibana poller, preload)
+    server/                   Node HTTP server — servíruje src/ + /api/health, /api/version
+    src/                      front-end
+      index.html              celá appka (HTML + CSS + JS v jednom súbore)
+      assets/                 logo, fonty (IBM Plex + Tabler Icons, vendorované z npm)
+      highs/build/            HiGHS wasm (vendorované z npm, viď README vnútri)
+      live-events.mjs         normalizácia Kibana eventov na agent/direction/edgeId
+    browser-extension/        fallback živých logov pre web/Codespaces nasadenie bez Electronu
     data/
-      data.json              pôvodný obnovený dataset CZLC4 (len historická referencia)
-      sklc3.json             oficiálny lokálny layout SKLC3
-    _recovered/              čiastočne obnovené súbory len pre referenciu
+      data.json               obnovený dataset CZLC4 (len historická referencia)
+      sklc3-telemetry-mapping.md  zdroj pravdy pre Kibana agent:direction → edgeId mapovanie
+    src/sklc3.json            aktívny lokálny layout SKLC3
+    windows-installer/        starší web-server-only Windows inštalátor (fallback bez Electronu)
 
 ## Solver
 
@@ -26,33 +27,39 @@ Verzia obnovená zo skompilovaného buildu **0.3.2-BETA**. Detaily obnovy: `RECO
 
 ## Dáta
 
-Appka si stav ukladá do `localStorage`. Tlačidlo **Načítať SKLC3** načíta lokálny
-`src/sklc3.json` a nevyžaduje internet ani GitHub token. Súbor je zatiaľ prázdna,
-platná šablóna; nahraď ho dodaným layoutom SKLC3. `data/data.json` obsahuje
-pôvodný CZLC4 dataset len ako historickú referenciu.
+Appka si stav ukladá do `localStorage`. Tlačidlo **Načíst SKLC3** načíta lokálny
+`src/sklc3.json` (aktívny layout) a nevyžaduje internet ani GitHub token.
+`data/data.json` obsahuje pôvodný CZLC4 dataset len ako historickú referenciu.
 
-## Ako rozbehať (Tauri 2)
+## Živé dáta
 
-Front-end je čisté HTML/JS, takže na náhľad stačí ľubovoľný static server:
+Appka nemá žiadny server-side prístup do Elasticsearch a žiadny API kľúč —
+živé Kibana logy idú vždy cez operátorovu vlastnú prihlásenú Kibana session:
+vstavaná karta v Electrone (`electron/`), alebo `browser-extension/` pri
+nasadení bez Electronu (napr. GitHub Codespaces). Pozri
+`README-local-setup.md` pre spustenie a `browser-extension/README.md` pre
+detaily živých logov.
 
-    cd src && python3 -m http.server 5173   # http://localhost:5173
+## Ako rozbehať
 
-Pre plný desktop build treba doplniť Tauri obal:
+```bash
+npm install
+npm run electron:dev   # desktop appka so vstavanou Kibana kartou
+# alebo
+npm start               # web server bez Electronu (http://127.0.0.1:5173)
+```
 
-1. `npm create tauri-app@latest` → vanilla, TypeScript nie je nutný, Tauri **v2**.
-2. Nastav `frontendDist` na tento `src/` (alebo skopíruj obsah).
-3. V `tauri.conf.json` zapni `app.withGlobalTauri: true` a pluginy
-   (fs, dialog, event, window, webview, menu, tray, path, image).
-4. Doplň fonty a HiGHS wasm (viď READMEs v priečinkoch).
-5. `npm run tauri dev`.
+Windows `.exe` inštalátor (electron-builder, NSIS): `npm run electron:build`
+→ `dist-electron/`. Podrobnosti vrátane predpokladov a rozšírenia pre živé
+logy: `README-local-setup.md`.
 
-## Backend
+## Testy
 
-Rust backend (`src-tauri/`) sa z `.exe` obnoviť nedal (skompilovaný strojový kód).
-Keďže appka je hlavne webview wrapper, dá sa dopísať nanovo podľa použitých pluginov vyššie.
+```bash
+npm test
+```
 
-## Windows inštalátor (bez Tauri)
+## Verziovanie
 
-Kým plný Tauri build nie je hotový, appku je možné nainštalovať na Windows
-ako lokálny web server (bez závislostí) cez skripty v `windows-installer/`
-— pozri `windows-installer/README.md`.
+Pozri `AGENTS.md` — verzia appky žije v `package.json` (`version`), je
+servírovaná na `/api/version` a zobrazená ako badge v hlavičke appky.
