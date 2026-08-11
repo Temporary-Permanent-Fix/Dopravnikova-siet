@@ -1,6 +1,6 @@
 {
   "name": "sklc3-live-visualization",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": true,
   "type": "module",
   "main": "electron/main.mjs",
@@ -11,9 +11,38 @@
     "dev": "node server/index.mjs",
     "start": "node server/index.mjs",
     "electron:dev": "electron .",
+    "electron:build": "electron-builder --win",
     "test": "node --test server/*.test.mjs electron/*.test.mjs"
   },
   "devDependencies": {
-    "electron": "^32.0.0"
+    "electron": "^32.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "cz.alza.dopravnikova-siet",
+    "productName": "Dopravníková sieť",
+    "asar": true,
+    "files": [
+      "electron/**/*",
+      "!electron/*.test.mjs",
+      "!electron/.env",
+      "server/**/*",
+      "!server/*.test.mjs",
+      "!server/fixtures/**",
+      "!server/.env",
+      "src/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "output": "dist-electron"
+    },
+    "win": {
+      "target": ["nsis"]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }

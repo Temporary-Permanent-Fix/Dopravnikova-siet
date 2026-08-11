@@ -1,4 +1,6 @@
 node_modules/
 server/.env
+electron/.env
 .env
 *.zip
+dist-electron/
