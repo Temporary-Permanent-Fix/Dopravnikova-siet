@@ -114,14 +114,37 @@ function registerIpcHandlers() {
 
 async function main() {
   startServerProcess();
-  await waitForServerReady();
+  try {
+    await waitForServerReady();
+  } catch (err) {
+    // Never leave the spawned server process orphaned if startup fails —
+    // that's how repeated failed launches used to pile up zombie processes.
+    serverProcess?.kill();
+    console.error(err);
+    app.exit(1);
+    return;
+  }
   createMainWindow();
   createKibanaView();
   createPoller();
   registerIpcHandlers();
 }
 
-app.whenReady().then(main);
+// Without this, every double-click (or every retry after a slow/failed
+// launch) starts a brand new app + server process tree instead of reusing
+// the running one, which is how instances silently pile up in Task Manager.
+const gotLock = app.requestSingleInstanceLock();
+if (!gotLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+  app.whenReady().then(main);
+}
 
 app.on('window-all-closed', () => {
   poller?.stop();
