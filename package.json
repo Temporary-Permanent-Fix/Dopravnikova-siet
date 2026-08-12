@@ -1,6 +1,6 @@
 {
   "name": "sklc3-live-visualization",
-  "version": "2.1.1",
+  "version": "2.1.3",
   "private": true,
   "type": "module",
   "main": "electron/main.mjs",

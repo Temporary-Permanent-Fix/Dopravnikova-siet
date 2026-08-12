@@ -2,6 +2,40 @@
 
 Formát vychází z [Keep a Changelog](https://keepachangelog.com/), verze podle [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH — pravidlo bumpu viz `AGENTS.md`).
 
+## [2.1.3] - 2026-08-12
+
+- Přepracován vizuální styl aplikace na tmavý „SKLC3" design (zelená
+  identita, tmavé panely) podle sdíleného `sklc3-theme.css` — nahrazeny
+  hodnoty designových tokenů v `:root` (`--bg`, `--surface`, `--text`,
+  `--border`, `--accent`, stíny) a opraveny desítky natvrdo zapsaných
+  světlých barev, které by jinak zůstaly nekonzistentní (chybové bannery,
+  preflight chipy, stavy live-logů, focus ring vyhledávání, tlačítko
+  „Rovnoměrné/Optimalizovat" a tooltip hrany, které dřív používaly
+  `var(--text)` jako pozadí — po přepnutí `--text` na bílou by tak zůstaly
+  neviditelné bílé-na-bílém). Plátno se sítí uzlů (canvas rendering) a
+  uvítací "sud" animace s Alza brandingem zůstávají beze změny —
+  retheme se týká jen UI chromu (`src/index.html`).
+
+## [2.1.2] - 2026-08-11
+
+- Oprava: panel „🌐 Kibana“ (a s ním aj natívny embedded Kibana
+  `WebContentsView`, ktorého bounds sa počítajú z rozmerov tohto DOM panelu)
+  bol prakticky neviditeľný — `.sim-panel` je flex kontajner v smere `row`
+  a `.kibana-view-panel` nemal explicitnú šírku, takže sa ako prázdny flex
+  item zbalil na nulovú šírku. Operátor sa tak nikdy nemohol prihlásiť do
+  vstavanej Kibany, čo sa navonok prejavovalo ako trvalá chyba „Kibana
+  session nie je aktívna alebo chýbajú práva“ v paneli Live logs. Pridané
+  `width: 100%` do `.kibana-view-panel` (`src/index.html`).
+- Vstavaný Kibana `WebContentsView` teraz sleduje stav načítania
+  (`electron/kibana-view-load.mjs`) — pri zlyhaní (napr. VPN/DNS ešte nie je
+  pripravené pri štarte appky) automaticky skúša znovu (~2s/5s/15s) a panel
+  zobrazí „Kibana sa nepodarilo načítať“ s tlačidlom „↻ Znovu načítať“
+  namiesto trvalo prázdnej/nefunkčnej plochy. Live Logs panel teraz ponúka
+  tlačidlo „Otvoriť Kibana kartu“ aj pri sieťovej chybe, nielen pri auth
+  chybe. SSO/SAML pop-up prihlásenie zo same-origin Kibana adresy ostáva vo
+  vstavanej `persist:kibana` session namiesto presmerovania do externého OS
+  prehliadača (`electron/main.mjs`, `electron/preload.cjs`).
+
 ## [2.1.1] - 2026-08-11
 
 - Odstránený server-side `LIVE_DATA_MODE=elasticsearch` režim a s ním

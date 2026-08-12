@@ -20,29 +20,29 @@
 @font-face { font-family:'IBM Plex Mono'; font-style:normal; font-weight:500; font-display:swap; src:url('assets/fonts/ibm-plex-mono-500-latin.woff2') format('woff2'); unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD; }
 @font-face { font-family:'IBM Plex Mono'; font-style:normal; font-weight:500; font-display:swap; src:url('assets/fonts/ibm-plex-mono-500-latinext.woff2') format('woff2'); unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF; }
 :root {
-  /* Backgrounds */
-  --bg: #f4f6f9;            /* Page background — cool light gray */
-  --surface: #ffffff;       /* Cards, panels */
-  --surface-soft: #f4f6f9;  /* Search bars, pill backgrounds */
-  --bg-soft: #f4f6f9;       /* Hover surfaces (alias for compat) */
+  /* Backgrounds — SKLC3 dark theme */
+  --bg: #111111;            /* Page background */
+  --surface: #1a1a1a;       /* Cards, panels */
+  --surface-soft: #222222;  /* Search bars, pill backgrounds */
+  --bg-soft: #2a2a2a;       /* Hover surfaces (alias for compat) */
 
   /* Text */
-  --text: #14171c;          /* Primary text — clean neutral */
-  --text-secondary: #4b5563;
-  --text-tertiary: #8b95a3;
+  --text: #ffffff;          /* Primary text */
+  --text-secondary: #e1e1e1;
+  --text-tertiary: #b0b0b0;
 
   /* Borders */
-  --border: #e8eaed;        /* Soft borders */
-  --border-strong: #d5d8dc; /* Stronger borders (kept for compat) */
+  --border: rgba(0, 184, 74, 0.15);        /* Soft green-tinted borders */
+  --border-strong: rgba(0, 184, 74, 0.30); /* Stronger borders (kept for compat) */
 
-  /* Accent (Alza-style vibrant blue) */
-  --accent: #1b7acd;
-  --accent-hover: #1568b5;
-  --accent-light: #eff4fb;
-  --accent-soft: #eff4fb;   /* alias */
+  /* Accent (SKLC3 green identity) */
+  --accent: #00963c;
+  --accent-hover: #00b84a;
+  --accent-light: rgba(0, 150, 60, 0.14);
+  --accent-soft: rgba(0, 150, 60, 0.14);   /* alias */
 
   /* Status */
-  --danger: #c83232;
+  --danger: #e05252;
 
   /* ===== Designové tokeny (handoff Claude Design) ===== */
   /* Brand */
@@ -50,7 +50,7 @@
   --brand-blue: #1B7ACD; --brand-blue-hover: #1568B5; --brand-blue-light: #EFF4FB;
   --brand-green: #97C459;
   /* Backgrounds (doplnění) */
-  --surface-sunken: #EDF0F4;
+  --surface-sunken: #141414;
   --text-on-accent: #FFFFFF;
   /* Status (doplnění) */
   --success: #16A34A; --warn: #D97706; --warn-2: #EA580C; --danger-2: #DC2626;
@@ -81,9 +81,9 @@
   /* Spacing (4px base) */
   --sp-1:4px; --sp-2:6px; --sp-3:8px; --sp-4:10px; --sp-5:12px; --sp-6:14px; --sp-7:16px; --sp-8:20px; --sp-9:24px;
   /* Elevation */
-  --shadow-card:0 1px 3px rgba(0,0,0,0.03); --shadow-raised:0 2px 10px rgba(20,23,28,0.06);
-  --shadow-dropdown:0 6px 20px rgba(0,0,0,0.08); --shadow-modal:0 10px 40px rgba(40,30,20,0.25);
-  --shadow-node:0 1px 2px rgba(0,0,0,0.14); --shadow-node-hover:0 3px 8px rgba(0,0,0,0.18);
+  --shadow-card:0 1px 3px rgba(0,0,0,0.35); --shadow-raised:0 4px 16px rgba(0,0,0,0.45);
+  --shadow-dropdown:0 10px 30px rgba(0,0,0,0.55); --shadow-modal:0 20px 60px rgba(0,0,0,0.65);
+  --shadow-node:0 1px 3px rgba(0,0,0,0.35); --shadow-node-hover:0 6px 18px rgba(0,0,0,0.5);
   /* Motion */
   --ease:cubic-bezier(0.4,0,0.2,1); --t-fast:0.12s var(--ease); --t-base:0.18s var(--ease);
 }
@@ -260,7 +260,7 @@ body {
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
 }
-.cm-table tbody tr:hover { background: rgba(0, 0, 0, 0.02); }
+.cm-table tbody tr:hover { background: rgba(255, 255, 255, 0.04); }
 .cm-table input[type="text"],
 .cm-table input[type="number"],
 .cm-table select {
@@ -269,7 +269,8 @@ body {
   border-radius: 4px;
   font-family: inherit;
   font-size: 12px;
-  background: white;
+  background: var(--surface);
+  color: var(--text);
 }
 .cm-table input[type="number"] { font-family: 'IBM Plex Mono', monospace; }
 .cm-table .cm-derived { font-family: 'IBM Plex Mono', monospace; color: var(--text-secondary); }
@@ -307,7 +308,7 @@ body {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  box-shadow: var(--shadow-card);
   display: flex;                 /* vše v jednom řádku (logo · search · pilulky · toolbar) */
   flex-wrap: wrap;
   align-items: center;
@@ -355,7 +356,7 @@ body {
 }
 .header-search:focus-within {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(27, 122, 205, 0.15);
+  box-shadow: 0 0 0 3px var(--accent-light);
 }
 .header-search > i { color: var(--text-tertiary); font-size: 16px; }
 .header-search input {
@@ -617,7 +618,7 @@ body {
   background: var(--surface);
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' stroke='%236b6862' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' stroke='%23b0b0b0' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
   background-repeat: no-repeat;
   background-position: right 8px center;
 }
@@ -642,14 +643,14 @@ body {
   left: 12px;
   right: 12px;
   z-index: 50;
-  background: #fdecec;
-  border: 1px solid #d97171;
-  border-left: 4px solid #c8202c;
+  background: rgba(224, 82, 82, 0.10);
+  border: 1px solid rgba(224, 82, 82, 0.35);
+  border-left: 4px solid var(--danger);
   border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(40, 16, 12, 0.12);
+  box-shadow: var(--shadow-raised);
   font-family: 'IBM Plex Sans', sans-serif;
   font-size: 13px;
-  color: #501616;
+  color: #ffb3b3;
   animation: fade-in 0.18s ease-out;
 }
 .lp-error-inner {
@@ -658,19 +659,19 @@ body {
   gap: 10px;
   padding: 10px 12px 10px 14px;
 }
-.lp-error-icon { font-size: 18px; line-height: 1.2; color: #c8202c; flex: 0 0 auto; padding-top: 1px; }
+.lp-error-icon { font-size: 18px; line-height: 1.2; color: var(--danger); flex: 0 0 auto; padding-top: 1px; }
 .lp-error-body { flex: 1; line-height: 1.55; min-width: 0; }
-.lp-error-body .lp-error-title { font-weight: 600; margin-bottom: 4px; color: #3a0e0e; }
+.lp-error-body .lp-error-title { font-weight: 600; margin-bottom: 4px; color: #ffd6d6; }
 .lp-error-body ul { margin: 0; padding-left: 18px; }
 .lp-error-body li { margin: 2px 0; }
-.lp-error-body strong { color: #2a0808; }
+.lp-error-body strong { color: #ffd6d6; }
 .lp-error-close {
   background: transparent; border: none; cursor: pointer;
-  color: #8a3030; font-size: 16px; line-height: 1;
+  color: #ff9b9b; font-size: 16px; line-height: 1;
   padding: 4px 8px; margin: -4px -4px -4px 0;
   border-radius: 4px;
 }
-.lp-error-close:hover { background: rgba(200, 32, 44, 0.1); color: #501616; }
+.lp-error-close:hover { background: rgba(224, 82, 82, 0.15); color: #ffd6d6; }
 @keyframes fade-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 
 .modal-backdrop {
@@ -689,17 +690,17 @@ body {
    stays visible even when hidden=true. */
 .modal-backdrop[hidden] { display: none; }
 .modal-dialog {
-  background: var(--surface, #fff);
-  border: 1px solid var(--border, #d9d4cc);
+  background: var(--surface, #1a1a1a);
+  border: 1px solid var(--border, rgba(0, 184, 74, 0.15));
   border-radius: 10px;
   padding: 20px 24px 18px;
   max-width: 480px;
   width: calc(100% - 40px);
-  box-shadow: 0 10px 40px rgba(40, 30, 20, 0.25);
+  box-shadow: var(--shadow-modal);
 }
-.modal-dialog h3 { margin: 0 0 8px; font-size: 16px; color: #2a2520; }
-.modal-dialog .modal-body { margin: 0 0 18px; line-height: 1.55; color: #4a443e; font-size: 13.5px; }
-.modal-dialog .modal-body strong { color: #2a2520; }
+.modal-dialog h3 { margin: 0 0 8px; font-size: 16px; color: var(--text); }
+.modal-dialog .modal-body { margin: 0 0 18px; line-height: 1.55; color: var(--text-secondary); font-size: 13.5px; }
+.modal-dialog .modal-body strong { color: var(--text); }
 .modal-buttons { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
 .modal-buttons .btn { min-width: 90px; }
 .live-config-field { display:block; }
@@ -831,7 +832,7 @@ body {
   display: inline-flex; align-items: center; justify-content: center;
   min-width: 18px; height: 16px; padding: 0 5px;
   border-radius: var(--r-pill);
-  background: rgba(0,0,0,0.06);
+  background: rgba(255,255,255,0.10);
   color: inherit;
   font-family: var(--font-mono);
   font-size: 10.5px; font-weight: 600;
@@ -980,19 +981,19 @@ body {
   cursor: default;
 }
 .preflight-chip.warn {
-  background: #fdf4e0;
-  border-color: #d4a857;
-  color: #6a4408;
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.4);
+  color: #f5c268;
 }
 .preflight-chip.error {
-  background: #fdecec;
-  border-color: #d97171;
-  color: #8a2020;
+  background: rgba(224, 82, 82, 0.12);
+  border-color: rgba(224, 82, 82, 0.4);
+  color: #ff9b9b;
 }
 .preflight-chip.info {
-  background: #e8f0f3;
-  border-color: #5da8d8;
-  color: #1f4e5f;
+  background: rgba(127, 212, 255, 0.12);
+  border-color: rgba(127, 212, 255, 0.35);
+  color: #9fe0ff;
 }
 .preflight-chip .pf-icon { opacity: 0.9; }
 
@@ -1106,11 +1107,11 @@ body {
 }
 /* Zdieľané medzi .live-logs-panel a .live-filter-panel (status riadky). */
 .live-state { font-weight: 600; }
-.live-state.ok { color: #15803d; }
-.live-state.waiting { color: #a16207; }
-.live-state.error { color: #b91c1c; }
+.live-state.ok { color: #4ade80; }
+.live-state.waiting { color: #f5c268; }
+.live-state.error { color: #ff9b9b; }
 .live-separator { color: var(--border-strong, #b8c0ca); }
-.live-error { color: #b91c1c; flex-basis: 100%; }
+.live-error { color: #ff9b9b; flex-basis: 100%; }
 .live-filter-panel {
   margin-top: 8px;
   padding: 7px 10px;
@@ -1132,7 +1133,7 @@ body {
 .live-filter-panel .live-filter-pill .lf-value { flex: 1.4; min-width: 0; }
 .live-filter-panel .live-filter-pill label { display: flex; align-items: center; gap: 3px; white-space: nowrap; color: var(--text-secondary); }
 .live-filter-panel .live-filter-pill .lf-remove { background: none; border: none; color: var(--text-tertiary); cursor: pointer; font-size: 13px; padding: 2px 4px; }
-.live-filter-panel .live-filter-pill .lf-remove:hover { color: #b91c1c; }
+.live-filter-panel .live-filter-pill .lf-remove:hover { color: #ff9b9b; }
 .live-filter-panel .live-filter-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .live-filter-panel .live-filter-empty { color: var(--text-tertiary); font-style: italic; }
 .live-logs-panel {
@@ -1153,10 +1154,15 @@ body {
 .live-logs-panel .live-logs-table .lg-time { white-space: nowrap; color: var(--text-tertiary); }
 .live-logs-panel .live-logs-table .lg-agent { white-space: nowrap; font-weight: 600; }
 .live-logs-panel .live-logs-table .lg-level { white-space: nowrap; }
-.live-logs-panel .live-logs-table .lg-level.warn { color: #a16207; }
-.live-logs-panel .live-logs-table .lg-level.error { color: #b91c1c; }
+.live-logs-panel .live-logs-table .lg-level.warn { color: #f5c268; }
+.live-logs-panel .live-logs-table .lg-level.error { color: #ff9b9b; }
 .live-logs-panel .live-logs-empty { color: var(--text-tertiary); font-style: italic; }
 .kibana-view-panel {
+  /* .sim-panel is a row-direction flex container; without an explicit width
+     this panel (often empty — its real content is the native WebContentsView
+     overlaid on top, see toggleKibanaViewPanel()) shrinks to zero width and
+     becomes invisible instead of wrapping onto its own full-width row. */
+  width: 100%;
   margin-top: 8px;
   min-height: 70vh;
   background: var(--surface-soft);
@@ -1309,9 +1315,9 @@ body {
 .btn-sim.active:hover { background: #d63f1f; border-color: #d63f1f; }
 .btn-sim-opt {
   padding: 7px 14px;
-  border: 1px solid var(--text);
-  background: var(--text);
-  color: white;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-soft);
+  color: var(--text);
   border-radius: 6px;
   cursor: pointer;
   font-family: inherit;
@@ -1319,7 +1325,7 @@ body {
   font-weight: 500;
   transition: background 0.12s, border-color 0.12s;
 }
-.btn-sim-opt:hover { background: #2a2520; }
+.btn-sim-opt:hover { background: var(--surface-soft); }
 .btn-sim-opt.active { background: var(--danger); border-color: var(--danger); }
 .btn-sim-opt.active:hover { background: #d63f1f; border-color: #d63f1f; }
 .btn-sim-export {
@@ -1370,8 +1376,8 @@ body {
 
 #edge-tooltip {
   position: fixed;
-  background: var(--text);
-  color: white;
+  background: #1a1a1a;
+  color: #ffffff;
   padding: 9px 11px;
   border-radius: 6px;
   font-family: 'IBM Plex Mono', monospace;
@@ -2617,6 +2623,8 @@ const state = {
   liveLogsWatchdog: null,
   liveLogsMovementActive: false,
   kibanaViewOpen: false,
+  kibanaLoadStatus: 'loading', // 'loading' | 'loaded' | 'error' — mirrors electron/kibana-view-load.mjs state
+  kibanaLoadError: null,
   liveFilterOpen: false,
   liveFilterQuery: '',    // voľný text (query_string na `message`)
   liveFilterPills: [],    // [{ field, value, negate }] — rovnako ako Kibana filter pills
@@ -3722,7 +3730,7 @@ function renderLiveLogsPanel() {
     : '';
   const errorLine = status === 'error'
     ? `<span class="live-error">Chyba: ${escapeHtml(state.liveLogsLastError || '')}</span>` +
-      (state.liveLogsLastErrorKind === 'auth' ? loginPromptBtn : '')
+      ((state.liveLogsLastErrorKind === 'auth' || state.liveLogsLastErrorKind === 'network') ? loginPromptBtn : '')
     : '';
   const notFoundHint = status === 'idle'
     ? (hasEmbeddedKibana
@@ -3943,18 +3951,42 @@ function syncKibanaViewBounds() {
   window.kibanaBridge.setViewBounds({ x: rect.left, y: rect.top, width: rect.width, height: rect.height });
 }
 
+// Kým sa vstavaný view ešte nenačítal (alebo zlyhal), natívny view zostáva
+// skrytý (bounds 0,0,0,0), aby bolo vidno DOM panel pod ním s hláškou a
+// tlačidlom na reload — inak by operátor videl len prázdnu plochu.
+function renderKibanaViewPanel() {
+  const el = document.getElementById('kibana-view-panel');
+  if (!el || !state.kibanaViewOpen) return;
+  if (!window.kibanaBridge) {
+    el.innerHTML = `<span class="kibana-view-hint">Vstavaná Kibana je dostupná len v desktop (Electron) builde appky — tu použi panel 📋 Live logs s browser extension.</span>`;
+    return;
+  }
+  if (state.kibanaLoadStatus === 'loaded') { el.innerHTML = ''; return; }
+  const isError = state.kibanaLoadStatus === 'error';
+  el.innerHTML = `<span class="kibana-view-hint">` +
+    (isError
+      ? `Kibana sa nepodarilo načítať${state.kibanaLoadError ? ` (${escapeHtml(state.kibanaLoadError)})` : ''}. `
+      : `Načítavam Kibana… `) +
+    (isError ? `<button class="btn-sim" id="btn-kibana-view-reload" type="button">↻ Znovu načítať</button>` : '') +
+    `</span>`;
+  document.getElementById('btn-kibana-view-reload')?.addEventListener('click', () => window.kibanaBridge.reload());
+}
+
+function updateKibanaViewVisibility() {
+  if (!window.kibanaBridge) { renderKibanaViewPanel(); return; }
+  const showNative = state.kibanaViewOpen && state.kibanaLoadStatus === 'loaded';
+  window.kibanaBridge.setViewVisible(showNative);
+  if (showNative) syncKibanaViewBounds();
+  renderKibanaViewPanel();
+}
+
 function toggleKibanaViewPanel() {
   state.kibanaViewOpen = !state.kibanaViewOpen;
   const btn = document.getElementById('btn-kibana-view');
   if (btn) btn.classList.toggle('active', state.kibanaViewOpen);
   const el = document.getElementById('kibana-view-panel');
   if (el) el.hidden = !state.kibanaViewOpen;
-  if (!window.kibanaBridge) {
-    if (el) el.innerHTML = `<span class="kibana-view-hint">Vstavaná Kibana je dostupná len v desktop (Electron) builde appky — tu použi panel 📋 Live logs s browser extension.</span>`;
-    return;
-  }
-  window.kibanaBridge.setViewVisible(state.kibanaViewOpen);
-  if (state.kibanaViewOpen) syncKibanaViewBounds();
+  updateKibanaViewVisibility();
 }
 
 function passiveSegmentFromEdge(startEdgeId, telemetryAgents) {
@@ -8571,6 +8603,17 @@ if (window.kibanaBridge) {
   window.kibanaBridge.onSnapshot(payload => handleLiveLogsBridgeMessage({ type: 'sklc3-logs-snapshot', ...payload }));
   window.kibanaBridge.onError(payload => handleLiveLogsBridgeMessage({ type: 'sklc3-logs-error', ...payload }));
   window.kibanaBridge.getLastSnapshot().then(msg => { if (msg) handleLiveLogsBridgeMessage(msg); });
+  window.kibanaBridge.onLoadState(payload => {
+    state.kibanaLoadStatus = payload.status;
+    state.kibanaLoadError = payload.lastError || null;
+    updateKibanaViewVisibility();
+  });
+  window.kibanaBridge.getLoadState().then(payload => {
+    if (!payload) return;
+    state.kibanaLoadStatus = payload.status;
+    state.kibanaLoadError = payload.lastError || null;
+    updateKibanaViewVisibility();
+  });
   const kibanaPanelEl = document.getElementById('kibana-view-panel');
   if (kibanaPanelEl && window.ResizeObserver) {
     new ResizeObserver(syncKibanaViewBounds).observe(kibanaPanelEl);
