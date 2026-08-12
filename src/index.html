@@ -116,6 +116,12 @@ body {
   flex: 1 1 auto;                        /* mřížka pohltí prostor pod toolbarem */
   min-height: 0;
 }
+.main-grid.sidebar-collapsed {
+  grid-template-columns: 1fr;
+}
+.main-grid.sidebar-collapsed .sidebar {
+  display: none;
+}
 .main-left {
   display: flex;
   flex-direction: column;
@@ -430,6 +436,10 @@ body {
 .icon-btn:hover {
   background: var(--surface-soft);
   color: var(--text);
+}
+.icon-btn.active {
+  background: var(--accent-light);
+  color: var(--accent);
 }
 .icon-btn i { font-size: 17px; }
 .icon-tray {
@@ -1112,6 +1122,8 @@ body {
 .live-state.error { color: #ff9b9b; }
 .live-separator { color: var(--border-strong, #b8c0ca); }
 .live-error { color: #ff9b9b; flex-basis: 100%; }
+.live-discover { color: #4ade80; flex-basis: 100%; }
+.live-discover.warn { color: #f5c268; }
 .live-filter-panel {
   margin-top: 8px;
   padding: 7px 10px;
@@ -1169,6 +1181,18 @@ body {
   border: 1px solid var(--border);
   border-radius: 7px;
   position: relative;
+}
+/* Maximalizovaný Kibana panel — vypadne z .sim-panel flow a zabere skoro celé
+   okno appky. Native WebContentsView sleduje rozměry tohoto DOM elementu
+   přes ResizeObserver (viz syncKibanaViewBounds()), takže se sám dorovná. */
+.kibana-view-panel.maximized {
+  position: fixed;
+  inset: 16px;
+  z-index: 500;
+  width: auto;
+  min-height: 0;
+  margin-top: 0;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
 }
 .kibana-view-panel .kibana-view-hint {
   position: absolute;
@@ -1618,7 +1642,7 @@ kbd {
       <div class="sud-eyebrow">Editor dopravníkové sítě</div>
       <div class="sud-w-markrow">
         <span class="sud-markslot" id="intro-markslot"></span>
-        <span class="sud-w-ver">v0.2.3</span>
+        <span class="sud-w-ver" id="intro-version">v…</span>
       </div>
       <h1 class="sud-w-title">Vítejte v&nbsp;Editoru&nbsp;dopravníkové sítě</h1>
       <p class="sud-w-sub">Navrhuj uzly, propojuj je dopravníky a odsimuluj tok materiálu napříč patry budovy — od zdrojů až k cílům.</p>
@@ -1658,6 +1682,7 @@ kbd {
       </div>
       <div class="icon-tray">
         <span class="header-pill" id="app-version-pill" title="Verze aplikace (release)">v…</span>
+        <button class="icon-btn" id="btn-toggle-sidebar" title="Skrýt/zobrazit panel s uzly"><i class="ti ti-layout-sidebar-right-collapse"></i></button>
         <button class="icon-btn" id="btn-shortcuts" title="Klávesové zkratky (?)"><i class="ti ti-help"></i></button>
       </div>
     </div>
@@ -1687,7 +1712,7 @@ kbd {
 
   <div class="status" id="status">Klikni na prvek pro výběr nebo táhni z plátna pro výběr více uzlů. Přetáhni typ uzlu z palety vpravo. Smazat: <kbd>Delete</kbd></div>
 
-  <div class="main-grid">
+  <div class="main-grid" id="main-grid">
     <div class="main-left">
       <div class="floors-bar" id="floors-bar"></div>
       <div class="canvas-wrap" id="canvas-wrap">
@@ -1771,6 +1796,7 @@ kbd {
           <button class="btn-sim" id="btn-live-logs" title="Živé sirové logy tms-multi-agent (cez vstavanú Kibana kartu alebo browser extension SKLC3 Live Logs Bridge)">📋 Live logs</button>
           <button class="btn-sim" id="btn-live-logs-movement" title="Animácia KLT pohybu na plátne podľa živých dát z vstavanej Kibana karty alebo browser extension">▶ Živý pohyb</button>
           <button class="btn-sim" id="btn-kibana-view" title="Vstavaná Kibana — prihlás sa priamo tu, appka z tejto session na pozadí číta dáta (nahrádza browser extension v desktop builde)">🌐 Kibana</button>
+          <button class="icon-btn" id="btn-kibana-maximize" title="Kibana na celú obrazovku" hidden><i class="ti ti-arrows-maximize"></i></button>
           <button class="btn-sim-export" id="btn-export-sim" disabled title="Nejdřív spusť Optimalizaci">⤓ TMS matice (CSV)</button>
           <button class="btn-sim-export" id="btn-export-assignment" disabled title="Nejdřív naimportuj trasy v Matici cílů">⤓ Cíl × trasa (CSV)</button>
           <div class="toolbar-dropdown" id="sim-tabs-settings-dropdown">
@@ -2619,17 +2645,20 @@ const state = {
   liveLogsStatus: 'idle', // idle | connected | error
   liveLogsLastError: null,
   liveLogsLastErrorKind: null, // 'auth' | 'not-found' | 'http' | 'network' | null
+  liveLogsDiscoverStatus: null, // 'tracking' | 'no-discover-url' | 'no-state' | 'data-view-unresolved' | null
+  liveLogsTrackedIndex: null, // index title resolved from the operator's Kibana Discover data view, while tracking
   liveLogsLastUpdate: null,
   liveLogsWatchdog: null,
   liveLogsMovementActive: false,
   kibanaViewOpen: false,
+  kibanaMaximized: false,
   kibanaLoadStatus: 'loading', // 'loading' | 'loaded' | 'error' — mirrors electron/kibana-view-load.mjs state
   kibanaLoadError: null,
   liveFilterOpen: false,
   liveFilterQuery: '',    // voľný text (query_string na `message`)
   liveFilterPills: [],    // [{ field, value, negate }] — rovnako ako Kibana filter pills
   liveFilterSentAt: null, // kedy sa naposledy poslal filter do extension (status riadok)
-  liveEventKinds: ['box-routed', 'arm-status', 'message', 'unknown-event'], // typy udalostí, ktoré má extension preposielať (default = všetky)
+  liveEventKinds: ['box-routed', 'arm-status'], // default = len udalosti reálneho pohybu balíka (routing + stav ramien); 'message'/'unknown-event' sú diagnostický šum, operátor si ich vie zapnúť v paneli filtrov
   packingPercent: 7,
   dragWaypoint: null,
   viewport: { x: 0, y: 0, zoom: 1 },
@@ -3692,6 +3721,8 @@ function handleLiveLogsBridgeMessage(data) {
     state.liveLogsStatus = 'connected';
     state.liveLogsLastError = null;
     state.liveLogsLastErrorKind = null;
+    state.liveLogsDiscoverStatus = data.discoverStatus || 'tracking';
+    state.liveLogsTrackedIndex = data.trackedIndex || null;
     state.liveLogsLastUpdate = data.fetchedAt || new Date().toISOString();
     for (const record of data.records || []) {
       if (record?.id) state.liveLogsRecords.set(record.id, record);
@@ -3705,6 +3736,8 @@ function handleLiveLogsBridgeMessage(data) {
     state.liveLogsStatus = 'error';
     state.liveLogsLastError = data.error?.message || 'Neznáma chyba';
     state.liveLogsLastErrorKind = data.error?.kind || null;
+    state.liveLogsDiscoverStatus = data.discoverStatus || null;
+    if (state.liveLogsDiscoverStatus && state.liveLogsDiscoverStatus !== 'tracking') state.liveLogsTrackedIndex = null;
     state.liveLogsLastUpdate = data.fetchedAt || new Date().toISOString();
   } else {
     return;
@@ -3719,6 +3752,7 @@ function renderLiveLogsPanel() {
   if (!state.liveLogsOpen) { el.hidden = true; return; }
   el.hidden = false;
   const status = state.liveLogsStatus;
+  const discoverStatus = state.liveLogsDiscoverStatus;
   const age = secondsSince(state.liveLogsLastUpdate);
   const hasEmbeddedKibana = Boolean(window.kibanaBridge);
   let statusLabel, statusCls;
@@ -3728,10 +3762,24 @@ function renderLiveLogsPanel() {
   const loginPromptBtn = hasEmbeddedKibana
     ? `<button class="btn-sim" id="btn-live-logs-open-kibana" type="button">🌐 Otvoriť Kibana kartu</button>`
     : '';
-  const errorLine = status === 'error'
+  // Live logy a živý pohyb sledujú presne to, čo je nastavené v Kibana
+  // Discovere (search/filtre/index/časový rozsah) — tieto stavy hlásia, či sa
+  // to aktuálne darí, namiesto tichého použitia iného/starého dopytu.
+  const DISCOVER_STATUS_MESSAGES = {
+    'no-discover-url': 'V Kibane nemáte otvorený Discover s aktívnym vyhľadávaním.',
+    'no-state': 'Discover sa práve načítava…',
+    'data-view-unresolved': `Index z Discoveru sa nepodarilo načítať${state.liveLogsLastError ? `: ${state.liveLogsLastError}` : ''}.`
+  };
+  const isDiscoverSetupError = status === 'error' && Boolean(DISCOVER_STATUS_MESSAGES[discoverStatus]);
+  const errorLine = (status === 'error' && !isDiscoverSetupError)
     ? `<span class="live-error">Chyba: ${escapeHtml(state.liveLogsLastError || '')}</span>` +
       ((state.liveLogsLastErrorKind === 'auth' || state.liveLogsLastErrorKind === 'network') ? loginPromptBtn : '')
     : '';
+  const discoverLine = status === 'connected' && discoverStatus === 'tracking'
+    ? `<span class="live-discover">🔎 Sledujem vyhľadávanie z Discover${state.liveLogsTrackedIndex ? ` (index: ${escapeHtml(state.liveLogsTrackedIndex)})` : ''}</span>`
+    : isDiscoverSetupError
+      ? `<span class="live-discover warn">⚠ ${escapeHtml(DISCOVER_STATUS_MESSAGES[discoverStatus])}</span>${hasEmbeddedKibana ? loginPromptBtn : ''}`
+      : '';
   const notFoundHint = status === 'idle'
     ? (hasEmbeddedKibana
         ? `<span class="live-error">Prepnite sa na kartu 🌐 Kibana a prihláste sa.</span>${loginPromptBtn}`
@@ -3740,7 +3788,7 @@ function renderLiveLogsPanel() {
   const statusHtml = `<div class="live-logs-status">` +
     `<span class="live-state ${statusCls}">${statusLabel}</span>` +
     (age != null ? `<span class="live-separator">·</span><span>vek ${formatAge(age)}</span>` : '') +
-    `<span class="live-separator">·</span><span>${state.liveLogsRecords.size} záznamov</span>${errorLine}${notFoundHint}</div>`;
+    `<span class="live-separator">·</span><span>${state.liveLogsRecords.size} záznamov</span>${errorLine}${discoverLine}${notFoundHint}</div>`;
   const kindCounts = { 'box-routed': 0, 'arm-status': 0, 'message': 0, 'unknown-event': 0 };
   for (const record of state.liveLogsRecords.values()) {
     const event = window.normalizeLiveEvent?.(record);
@@ -3808,7 +3856,7 @@ function loadLiveLogsFilters() {
         .map(p => ({ field: p.field, value: p.value, negate: !!p.negate }));
     }
     // Staré uložené filtre (pred pridaním typov udalostí) toto pole nemajú —
-    // vtedy zostáva default (všetky typy), nie prázdny výber.
+    // vtedy zostáva default (box-routed + arm-status), nie prázdny výber.
     if (Array.isArray(parsed.eventKinds)) {
       state.liveEventKinds = parsed.eventKinds.filter(k => ALL_LIVE_EVENT_KINDS.includes(k));
     }
@@ -3868,10 +3916,10 @@ function toggleLiveEventKind(kind, checked) {
 function clearLiveLogsFilters() {
   state.liveFilterQuery = '';
   state.liveFilterPills = [];
-  // Reset na "všetky typy", nie na prázdny výber — prázdny výber teraz
-  // znamená "blokuj všetko" a po kliknutí "Vymazať" by operátor nečakane
-  // nedostával žiadne záznamy.
-  state.liveEventKinds = ALL_LIVE_EVENT_KINDS.slice();
+  // Reset na predvolené typy (reálny pohyb), nie na prázdny výber — prázdny
+  // výber teraz znamená "blokuj všetko" a po kliknutí "Vymazať" by operátor
+  // nečakane nedostával žiadne záznamy.
+  state.liveEventKinds = ['box-routed', 'arm-status'];
   applyLiveLogsFilters();
 }
 
@@ -3986,8 +4034,29 @@ function toggleKibanaViewPanel() {
   if (btn) btn.classList.toggle('active', state.kibanaViewOpen);
   const el = document.getElementById('kibana-view-panel');
   if (el) el.hidden = !state.kibanaViewOpen;
+  const maximizeBtn = document.getElementById('btn-kibana-maximize');
+  if (maximizeBtn) maximizeBtn.hidden = !state.kibanaViewOpen;
+  if (!state.kibanaViewOpen && state.kibanaMaximized) toggleKibanaMaximize();
   updateKibanaViewVisibility();
 }
+
+// Maximalizace Kibana panelu — panel opustí flow .sim-panel a zabere skoro
+// celé okno appky (CSS `.kibana-view-panel.maximized`). Native WebContentsView
+// sleduje rozměry DOM elementu přes ResizeObserver (syncKibanaViewBounds()),
+// takže se sám dorovná bez zásahu do electron/main.mjs.
+function toggleKibanaMaximize() {
+  if (!state.kibanaViewOpen) return;
+  state.kibanaMaximized = !state.kibanaMaximized;
+  const el = document.getElementById('kibana-view-panel');
+  if (el) el.classList.toggle('maximized', state.kibanaMaximized);
+  const btn = document.getElementById('btn-kibana-maximize');
+  if (btn) {
+    btn.classList.toggle('active', state.kibanaMaximized);
+    btn.title = state.kibanaMaximized ? 'Zmenšit Kibana panel (Esc)' : 'Kibana na celú obrazovku';
+    btn.querySelector('i').className = state.kibanaMaximized ? 'ti ti-arrows-minimize' : 'ti ti-arrows-maximize';
+  }
+}
+document.getElementById('btn-kibana-maximize')?.addEventListener('click', toggleKibanaMaximize);
 
 function passiveSegmentFromEdge(startEdgeId, telemetryAgents) {
   const edgeById = new Map(state.edges.map(edge => [edge.id, edge]));
@@ -4192,15 +4261,21 @@ function updateBoxTracker(boxesAsc) {
   const now = performance.now();
   for (const box of boxesAsc) {
     if (!box || !box.boxCode || !Array.isArray(box.edgeIds) || !box.edgeIds.length) continue;
-    // Každá nová udalosť pre daný boxCode štartuje nový úsek animácie od nuly
-    // — či už ide o potvrdenie príchodu na čidlo, na ktoré sa čakalo, alebo
-    // o prvé zbadanie tejto bedny (existing.nextAgent sa už nekontroluje
-    // explicitne: nová udalosť je vždy pravda o tom, kde sa bedna reálne
-    // nachádza teraz).
+    // Kibana sa pýta na posledných ~500 záznamov pri KAŽDOM polle (nie len na
+    // nové od posledného pollu) — tá istá už spracovaná udalosť sa preto
+    // objaví znova aj v ďalších polloch, hoci sa reálne nič nezmenilo.
+    // Reset legStartAt (nový úsek animácie od nuly) len keď observedAt
+    // skutočne pokročil, teda ide o naozaj novú udalosť (napr. potvrdenie
+    // z ďalšieho čidla) — inak by sa animácia reštartovala od začiatku
+    // úseku každé 3 sekundy namiesto plynulého behu k hranici a bedna by na
+    // dlhších (viachranových) úsekoch nikdy nedobehla k ďalšiemu čidlu.
+    const existing = state.boxTracker.get(box.boxCode);
+    if (existing && box.observedAt && existing.observedAt === box.observedAt) continue;
     state.boxTracker.set(box.boxCode, {
       edgeIds: box.edgeIds,
       nextAgent: box.nextAgent || null,
       terminal: !!box.terminal,
+      observedAt: box.observedAt || null,
       legStartAt: now
     });
   }
@@ -8431,6 +8506,10 @@ window.addEventListener('mouseup', () => {
 });
 
 document.addEventListener('keydown', e => {
+  // Esc = leave maximized Kibana panel, regardless of focus (mirrors modal Esc handling below)
+  if (e.key === 'Escape' && state.kibanaMaximized) {
+    e.preventDefault(); toggleKibanaMaximize(); return;
+  }
   if (e.target.matches('input, textarea, select')) {
     // Allow Ctrl+Z to undo even when an input is focused (common UX)
     if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
@@ -8565,12 +8644,20 @@ try { if (localStorage.getItem('editorUseCanvas') !== '0') applyRendererChoice(t
 
 // Verze aplikace (release semver z package.json) — NENÍ totéž co uložené
 // verze mapy (CZLC4 "Uložit verzi" níže), jde jen o odznak buildu appky.
+// Nastavuje jak header pill, tak úvodní "sud" splash obrazovku (dřív tam
+// zůstávala natvrdo zapsaná zastaralá "v0.2.3", i po výplatách release verze).
 (function loadAppVersionPill() {
-  const el = document.getElementById('app-version-pill');
-  if (!el) return;
+  const pillEl = document.getElementById('app-version-pill');
+  const introEl = document.getElementById('intro-version');
+  if (!pillEl && !introEl) return;
   fetch('/api/version').then(r => r.json()).then(data => {
-    if (data && data.version) el.textContent = 'v' + data.version;
-  }).catch(() => { el.textContent = ''; el.hidden = true; });
+    if (!data || !data.version) throw new Error('no version');
+    if (pillEl) pillEl.textContent = 'v' + data.version;
+    if (introEl) introEl.textContent = 'v' + data.version;
+  }).catch(() => {
+    if (pillEl) { pillEl.textContent = ''; pillEl.hidden = true; }
+    if (introEl) introEl.hidden = true;
+  });
 })();
 
 document.getElementById('btn-simulate').addEventListener('click', () => {
@@ -10534,6 +10621,29 @@ function hideShortcutsModal() {
   if (modal) modal.addEventListener('click', e => {
     if (e.target.id === 'shortcuts-modal') hideShortcutsModal();
   });
+})();
+
+// Skrytí/zobrazení bočního panelu (paleta + inspektor) — uvolní canvas na
+// plnou šířku. Stav se pamatuje mezi spuštěními appky.
+const SIDEBAR_COLLAPSED_STORAGE_KEY = 'sklc3SidebarCollapsed';
+function applySidebarCollapsed(collapsed) {
+  const grid = document.getElementById('main-grid');
+  const btn = document.getElementById('btn-toggle-sidebar');
+  if (grid) grid.classList.toggle('sidebar-collapsed', collapsed);
+  if (btn) {
+    btn.classList.toggle('active', collapsed);
+    btn.title = collapsed ? 'Zobrazit panel s uzly' : 'Skrýt panel s uzly';
+    btn.querySelector('i').className = collapsed ? 'ti ti-layout-sidebar-right-expand' : 'ti ti-layout-sidebar-right-collapse';
+  }
+}
+function toggleSidebarPanel() {
+  const collapsed = !document.getElementById('main-grid')?.classList.contains('sidebar-collapsed');
+  applySidebarCollapsed(collapsed);
+  try { localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, collapsed ? '1' : '0'); } catch (e) { /* localStorage nedostupný — stav se jen nezapamatuje */ }
+}
+(function() {
+  document.getElementById('btn-toggle-sidebar')?.addEventListener('click', toggleSidebarPanel);
+  try { applySidebarCollapsed(localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY) === '1'); } catch (e) { /* localStorage nedostupný — výchozí stav (rozbalený) */ }
 })();
 
 // ===== Header search bar =====

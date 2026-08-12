@@ -7,6 +7,16 @@
 // normalizeHit in sync with browser-extension/kibana-fetcher.js by hand —
 // that file already duplicates its event templates from src/live-events.mjs
 // for the same reason (a content script can't import an ES module of the app).
+//
+// The index queried and any extra filters/free-text/time-range applied come
+// from whatever the operator has actually set up in the embedded Kibana
+// Discover view (read live off its URL via kibana-rison.mjs and resolved via
+// kibana-data-view.mjs) — not from a fixed app-config index. BASE_FILTER
+// still narrows to this app's own telemetry pod, since the box/arm event
+// templates this app understands only ever originate there.
+
+import { parseKibanaDiscoverUrl, isDiscoverPath } from './kibana-rison.mjs';
+import { createDataViewResolver } from './kibana-data-view.mjs';
 
 const BASE_FILTER = [
   { match_phrase: { 'kubernetes.pod_name': 'tms-multi-agent' } },
@@ -32,7 +42,7 @@ export const EVENT_TEMPLATES = {
 };
 export const ALL_EVENT_KINDS = ['box-routed', 'arm-status', 'message', 'unknown-event'];
 
-export function buildQueryBody({ filters = [], query = '', eventKinds = ALL_EVENT_KINDS } = {}) {
+export function buildQueryBody({ filters = [], query = '', eventKinds = ALL_EVENT_KINDS, discoverState = null } = {}) {
   const positive = [];
   const negative = NOISE_MUST_NOT.slice();
   for (const item of filters) {
@@ -42,8 +52,28 @@ export function buildQueryBody({ filters = [], query = '', eventKinds = ALL_EVEN
     const clause = { match_phrase: { [field]: value } };
     (item.negate ? negative : positive).push(clause);
   }
+  // Filter pills the operator set up directly in Kibana Discover — already
+  // reconstructed as ES DSL by kibana-rison.mjs, merged in alongside this
+  // app's own field/value pills above.
+  for (const discoverFilter of discoverState?.filters || []) {
+    if (!discoverFilter?.query) continue;
+    (discoverFilter.negate ? negative : positive).push(discoverFilter.query);
+  }
   const filter = [...BASE_FILTER, ...positive, { bool: { must_not: negative } }];
   if (query) filter.push({ query_string: { query, default_field: 'message', lenient: true } });
+  if (discoverState?.queryString) {
+    // Best-effort: Discover's free-text bar is KQL, this treats it as a
+    // Lucene-ish query_string (same lenient approach already used for the
+    // app's own free-text field above). Exotic KQL syntax may not translate
+    // exactly — filter pills (handled above) decode losslessly instead.
+    filter.push({ query_string: { query: discoverState.queryString, default_field: 'message', lenient: true } });
+  }
+  if (discoverState?.timeRange?.from || discoverState?.timeRange?.to) {
+    const range = {};
+    if (discoverState.timeRange.from) range.gte = discoverState.timeRange.from;
+    if (discoverState.timeRange.to) range.lte = discoverState.timeRange.to;
+    filter.push({ range: { [discoverState.timeFieldName || 'dateTime']: range } });
+  }
   if (eventKinds.length < ALL_EVENT_KINDS.length) {
     const should = [];
     for (const kind of eventKinds) {
@@ -128,13 +158,19 @@ export function classifyResult(result) {
   return { error: { kind: 'network', message: result.networkError || 'Neznáma sieťová chyba' } };
 }
 
-export function createKibanaPoller({ getWebContents, indexPattern, intervalMs, onSnapshot, onError }) {
+const DISCOVER_STATUS_ERRORS = {
+  'no-discover-url': { kind: 'no-discover-url', message: 'V Kibane nemáte otvorený Discover s aktívnym vyhľadávaním.' },
+  'no-state': { kind: 'no-state', message: 'Discover sa práve načítava, skúsim znova.' }
+};
+
+export function createKibanaPoller({ getWebContents, intervalMs, onSnapshot, onError }) {
   let currentFilters = [];
   let currentQuery = '';
   let currentEventKinds = ALL_EVENT_KINDS.slice();
   let lastMessage = null;
   let timer = null;
   let inFlight = false;
+  const dataViewResolver = createDataViewResolver({ getWebContents });
 
   function setFilters({ filters, query, eventKinds } = {}) {
     currentFilters = Array.isArray(filters) ? filters : [];
@@ -155,12 +191,47 @@ export function createKibanaPoller({ getWebContents, indexPattern, intervalMs, o
     }
   }
 
+  // Reads what the operator has actually set up in the embedded Kibana
+  // Discover view right now (index/data view, filter pills, free-text
+  // search, time range) instead of a fixed app-config index — see the
+  // module header. Never throws: an unresolvable/absent Discover state is a
+  // normal, surfaced status, not an error to bubble up.
+  async function resolveDiscoverState(webContents) {
+    const url = webContents.getURL?.();
+    if (!url || !isDiscoverPath(url)) return { status: 'no-discover-url' };
+    const parsed = parseKibanaDiscoverUrl(url);
+    if (!parsed || !parsed.dataViewId) return { status: 'no-state' };
+    const resolved = await dataViewResolver.resolve(parsed.dataViewId);
+    if (resolved.error) return { status: 'data-view-unresolved', error: resolved.error };
+    return {
+      status: 'tracking',
+      trackedIndex: resolved.title,
+      discoverState: {
+        filters: parsed.filters,
+        queryString: parsed.query?.queryString || '',
+        timeRange: parsed.timeRange,
+        timeFieldName: resolved.timeFieldName
+      }
+    };
+  }
+
   async function runPoll() {
     const fetchedAt = new Date().toISOString();
     const webContents = getWebContents();
     if (!webContents || webContents.isDestroyed()) return;
-    const proxyUrl = buildProxyUrl(indexPattern);
-    const bodyJson = JSON.stringify(buildQueryBody({ filters: currentFilters, query: currentQuery, eventKinds: currentEventKinds }));
+
+    const discover = await resolveDiscoverState(webContents);
+    if (discover.status !== 'tracking') {
+      const error = discover.error || DISCOVER_STATUS_ERRORS[discover.status];
+      lastMessage = { type: 'sklc3-logs-error', error, discoverStatus: discover.status, fetchedAt };
+      onError?.({ error, discoverStatus: discover.status, fetchedAt });
+      return;
+    }
+
+    const proxyUrl = buildProxyUrl(discover.trackedIndex);
+    const bodyJson = JSON.stringify(buildQueryBody({
+      filters: currentFilters, query: currentQuery, eventKinds: currentEventKinds, discoverState: discover.discoverState
+    }));
     let result;
     try {
       result = await webContents.executeJavaScript(buildInPageFetchScript(proxyUrl, bodyJson), true);
@@ -169,17 +240,18 @@ export function createKibanaPoller({ getWebContents, indexPattern, intervalMs, o
     }
     const classified = classifyResult(result);
     if (classified.records) {
-      lastMessage = { type: 'sklc3-logs-snapshot', records: classified.records, fetchedAt };
-      onSnapshot?.({ records: classified.records, fetchedAt });
+      lastMessage = { type: 'sklc3-logs-snapshot', records: classified.records, fetchedAt, discoverStatus: 'tracking', trackedIndex: discover.trackedIndex };
+      onSnapshot?.({ records: classified.records, fetchedAt, discoverStatus: 'tracking', trackedIndex: discover.trackedIndex });
     } else {
-      lastMessage = { type: 'sklc3-logs-error', error: classified.error, fetchedAt };
-      onError?.({ error: classified.error, fetchedAt });
+      lastMessage = { type: 'sklc3-logs-error', error: classified.error, discoverStatus: 'tracking', fetchedAt };
+      onError?.({ error: classified.error, discoverStatus: 'tracking', fetchedAt });
     }
   }
 
   function start() {
-    poll();
+    const initial = poll();
     timer = setInterval(poll, intervalMs);
+    return initial;
   }
 
   function stop() {

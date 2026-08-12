@@ -2,8 +2,9 @@ import { app, BrowserWindow, WebContentsView, session, ipcMain, shell } from 'el
 import { spawn } from 'node:child_process';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { kibanaBaseUrl, kibanaIndexPattern, kibanaPollIntervalMs, appServerPort, appServerHost } from './config.mjs';
+import { kibanaBaseUrl, kibanaPollIntervalMs, appServerPort, appServerHost } from './config.mjs';
 import { createKibanaPoller } from './kibana-poll.js';
+import { createKibanaLoadWatcher, isSameOrigin } from './kibana-view-load.mjs';
 
 const electronDir = fileURLToPath(new URL('.', import.meta.url));
 const root = resolve(electronDir, '..');
@@ -15,6 +16,7 @@ let serverProcess = null;
 let mainWindow = null;
 let kibanaView = null;
 let poller = null;
+let kibanaLoadWatcher = null;
 let lastKibanaBounds = { x: 0, y: 0, width: 0, height: 0 };
 
 function startServerProcess() {
@@ -48,6 +50,13 @@ function createMainWindow() {
   mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
+    // Matches src/index.html's --bg token. Without this, Electron's default
+    // white background shows through until the page finishes its first
+    // paint — a flash of the wrong (light) theme right at launch.
+    backgroundColor: '#111111',
+    // Held back until 'ready-to-show' below so the window only ever appears
+    // already painted in the app's own dark theme, never blank/white.
+    show: false,
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
@@ -55,6 +64,7 @@ function createMainWindow() {
       preload: join(electronDir, 'preload.cjs')
     }
   });
+  mainWindow.once('ready-to-show', () => mainWindow.show());
   mainWindow.loadURL(appUrl);
   mainWindow.on('closed', () => { mainWindow = null; });
 }
@@ -72,10 +82,28 @@ function createKibanaView() {
   // Poller keeps scraping on a fixed interval regardless of tab visibility —
   // don't let Chromium throttle timers/fetch in the hidden webContents.
   kibanaView.webContents.setBackgroundThrottling(false);
+
+  // SAML/SSO popups Kibana may open for login must land in the same
+  // persist:kibana session as this view, not the OS browser, or the login
+  // cookies never reach the WebContentsView the poller reads from. Only
+  // truly external links (different origin) still go to shell.openExternal.
   kibanaView.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url);
+    if (isSameOrigin(url, kibanaBaseUrl)) kibanaView.webContents.loadURL(url);
+    else shell.openExternal(url);
     return { action: 'deny' };
   });
+
+  // The initial loadURL below can fail (e.g. VPN/DNS not ready yet right at
+  // launch) with no visible sign to the operator — this watcher detects that,
+  // retries automatically a few times, and backs the manual "reload" button.
+  kibanaLoadWatcher = createKibanaLoadWatcher({
+    loadUrl: () => kibanaView.webContents.loadURL(kibanaBaseUrl),
+    onStateChange: state => mainWindow?.webContents.send('kibana:load-state', state)
+  });
+  kibanaView.webContents.on('did-fail-load', (_event, errorCode, errorDescription, _url, isMainFrame) =>
+    kibanaLoadWatcher.handleFailure(errorCode, errorDescription, isMainFrame));
+  kibanaView.webContents.on('did-finish-load', () => kibanaLoadWatcher.handleSuccess());
+
   kibanaView.setBounds({ x: 0, y: 0, width: 0, height: 0 });
   mainWindow.contentView.addChildView(kibanaView);
   kibanaView.webContents.loadURL(kibanaBaseUrl);
@@ -84,7 +112,6 @@ function createKibanaView() {
 function createPoller() {
   poller = createKibanaPoller({
     getWebContents: () => kibanaView?.webContents,
-    indexPattern: kibanaIndexPattern,
     intervalMs: kibanaPollIntervalMs,
     onSnapshot: payload => mainWindow?.webContents.send('kibana:snapshot', payload),
     onError: payload => mainWindow?.webContents.send('kibana:error', payload)
@@ -113,6 +140,8 @@ function registerIpcHandlers() {
     if (!kibanaView) return;
     kibanaView.setBounds(lastKibanaVisible ? lastKibanaBounds : { x: 0, y: 0, width: 0, height: 0 });
   });
+  ipcMain.on('kibana:reload-view', () => kibanaLoadWatcher?.reload());
+  ipcMain.handle('kibana:get-load-state', () => kibanaLoadWatcher?.getState() ?? null);
 }
 
 async function main() {
@@ -151,11 +180,13 @@ if (!gotLock) {
 
 app.on('window-all-closed', () => {
   poller?.stop();
+  kibanaLoadWatcher?.dispose();
   serverProcess?.kill();
   if (process.platform !== 'darwin') app.quit();
 });
 
 app.on('before-quit', () => {
   poller?.stop();
+  kibanaLoadWatcher?.dispose();
   serverProcess?.kill();
 });

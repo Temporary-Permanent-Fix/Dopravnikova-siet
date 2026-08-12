@@ -22,5 +22,14 @@ contextBridge.exposeInMainWorld('kibanaBridge', {
   },
   setViewVisible(visible) {
     ipcRenderer.send('kibana:set-visible', Boolean(visible));
+  },
+  onLoadState(callback) {
+    ipcRenderer.on('kibana:load-state', (_event, payload) => callback(payload));
+  },
+  getLoadState() {
+    return ipcRenderer.invoke('kibana:get-load-state');
+  },
+  reload() {
+    ipcRenderer.send('kibana:reload-view');
   }
 });

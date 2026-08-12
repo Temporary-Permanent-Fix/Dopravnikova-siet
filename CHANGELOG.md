@@ -2,6 +2,68 @@
 
 Formát vychází z [Keep a Changelog](https://keepachangelog.com/), verze podle [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH — pravidlo bumpu viz `AGENTS.md`).
 
+## [3.0.0] - 2026-08-12
+
+- Panel `📋 Live logs` teraz defaultne posiela do Kibany dopyt len na
+  udalosti reálneho pohybu balíka (`box-routed` — box bol nasmerovaný;
+  `arm-status` — zmena stavu ramena), namiesto všetkých typov vrátane
+  diagnostického šumu (`✉ Správa`, `❓ Neznáme`). Server-side ES filter na
+  `messageTemplate` tak z Kibany vôbec nesťahuje riadky ako "Begin/End
+  processing request codes", "Aggregated code(s)", surové SignalR dumpy
+  (`BoxRouteCommandEventSignalR`/`BoxReadEventSignalR`) ani "Sending MQTT
+  route" — operátor si oba vypnuté typy môže kedykoľvek zapnúť späť v
+  paneli filtrov.
+- Opravená animácia „Živého pohybu": appka sa pri každom polle (každé 3 s)
+  pýta Kibany na posledných ~500 záznamov nanovo, nielen na nové od
+  minulého pollu — tá istá už spracovaná udalosť sa preto objavovala znova
+  aj o 3 sekundy neskôr. `updateBoxTracker` (`src/index.html`) to
+  nerozlišovala od skutočne novej udalosti a reštartovala animáciu bedny
+  od začiatku úseku pri každom polle, takže na dlhších (viachranových)
+  pasívnych segmentoch bedna nikdy vizuálne nedobehla k ďalšiemu čidlu.
+  Reset teraz nastáva len keď sa zmení `observedAt` sledovanej udalosti
+  (reálne nová udalosť z ďalšieho čidla) — bedna tak plynulo dobehne k
+  hranici úseku a tam čaká (pulzujúci obrys), kým ju nepotvrdí ďalšie
+  čidlo, presne ako reálny pohyb bedny na páse.
+
+## [2.3.0] - 2026-08-12
+
+- Live logy a živý pohyb teraz sledujú presne to, čo má operátor nastavené
+  priamo v embedovanom Kibana Discovere (index/data view, filter pills,
+  voľný text, časový rozsah) — namiesto natvrdo zadaného indexu
+  (`p-lct-k8s-*`) z konfigurácie appky, ktorý predtým ignoroval operátorov
+  vlastný filter/vyhľadávanie a zobrazoval nesprávne dáta.
+- Pridané: `electron/kibana-rison.mjs` (obnovený rison decoder pre Kibana
+  `_g`/`_a` URL stav, predtým odstránený v `1924901` ako nepoužitý — teraz
+  je to presne jeho use-case) a `electron/kibana-data-view.mjs` (rozlíšenie
+  Kibana data view id na skutočný názov indexu cez `/api/data_views/*`,
+  s fallbackom na staršie `/api/saved_objects/index-pattern/*`).
+- Panel `📋 Live logs` zobrazuje nový stavový riadok — či appka aktuálne
+  sleduje aktívne vyhľadávanie z Discoveru (s názvom rozlíšeného indexu),
+  alebo prečo nie (Discover nie je otvorený, čaká sa na jeho stav, alebo sa
+  nepodarilo rozlíšiť dátový pohľad).
+- `browser-extension/kibana-fetcher.js` (webová/Codespaces cesta bez
+  Electronu) dostal rovnaké správanie.
+- Odstránená natvrdo zadaná `KIBANA_INDEX_PATTERN`/`kibanaIndexPattern`
+  konfigurácia — appka už nemá kam ticho spadnúť späť, keď Discover stav
+  chýba, čo bol presne pôvodný zdroj nesprávnych dát.
+
+## [2.2.0] - 2026-08-12
+
+- Přidáno tlačítko pro skrytí/zobrazení bočního panelu (paleta uzlů +
+  inspektor) — canvas se po skrytí roztáhne na celou šířku, stav se
+  pamatuje mezi spuštěními (`localStorage`).
+- Přidáno tlačítko pro maximalizaci vstavaného Kibana panelu na téměř celé
+  okno appky (zavírá se i klávesou Esc) — natívní `WebContentsView` se
+  automaticky přizpůsobí přes existující `ResizeObserver`/bounds-sync, bez
+  zásahu do `electron/main.mjs`.
+- Opraveno: `BrowserWindow` při startu appky neměl nastavené `backgroundColor`
+  ani `show:false`/`ready-to-show`, takže se okno krátce zobrazilo s
+  výchozím bílým Electron pozadím dřív, než appka stihla vykreslit svůj
+  tmavý SKLC3 motiv.
+- Opraveno: úvodní "sud" obrazovka zobrazovala natvrdo zapsanou zastaralou
+  verzi (`v0.2.3`) namísto skutečné verze appky z `package.json` — teď se
+  načítá stejně jako badge v hlavičce (`/api/version`).
+
 ## [2.1.3] - 2026-08-12
 
 - Přepracován vizuální styl aplikace na tmavý „SKLC3" design (zelená
