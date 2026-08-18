@@ -137,7 +137,10 @@ export function demoCratesByEdgeAt(demoCrates, cratePhase) {
     const edgeIndex = Math.min(n - 1, Math.floor(scaled));
     const edgeId = crate.edgeIds[edgeIndex];
     const list = byEdge.get(edgeId) || [];
-    list.push({ boxCode: crate.boxCode, progress: scaled - edgeIndex });
+    // queueKey: unclamped continuous position, used only to order/space out
+    // multiple crates that land on the same edge (see boxTrackerCratesByEdge
+    // for why this matters once crates can be clamped to the same spot).
+    list.push({ boxCode: crate.boxCode, progress: scaled - edgeIndex, queueKey: scaled });
     byEdge.set(edgeId, list);
   });
   return byEdge;
@@ -163,7 +166,11 @@ export function boxTrackerCratesByEdge(boxTrackerEntries, nowMs, { crateMsPerEdg
     const edgeId = box.edgeIds[edgeIndex];
     const waiting = !box.terminal && elapsedEdges >= cap;
     const list = byEdge.get(edgeId) || [];
-    list.push({ boxCode, progress: scaled - edgeIndex, waiting });
+    // queueKey: unclamped elapsedEdges (unlike `scaled`/`progress`, never
+    // capped at `cap`) — several boxes stopped at the same waiting spot all
+    // share the same clamped progress, but the one that's been elapsing
+    // longest arrived first and belongs at the front of the visual queue.
+    list.push({ boxCode, progress: scaled - edgeIndex, waiting, queueKey: elapsedEdges });
     byEdge.set(edgeId, list);
   }
   return { byEdge, expired };

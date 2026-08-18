@@ -307,7 +307,7 @@ test('demoCratesByEdgeAt: places a crate on the edge matching its phase, with fr
   const byEdge = demoCratesByEdgeAt(crates, 1.5);
 
   assert.deepEqual([...byEdge.keys()], ['e2']);
-  assert.deepEqual(byEdge.get('e2'), [{ boxCode: 'DEMO-1', progress: 0.5 }]);
+  assert.deepEqual(byEdge.get('e2'), [{ boxCode: 'DEMO-1', progress: 0.5, queueKey: 1.5 }]);
 });
 
 test('demoCratesByEdgeAt: phase wraps around back to the first edge once it exceeds the chain length', () => {
@@ -328,8 +328,8 @@ test('demoCratesByEdgeAt: offset spreads crates on the same chain across differe
 
   const byEdge = demoCratesByEdgeAt(crates, 0);
 
-  assert.deepEqual(byEdge.get('e1'), [{ boxCode: 'DEMO-A', progress: 0 }]);
-  assert.deepEqual(byEdge.get('e2'), [{ boxCode: 'DEMO-B', progress: 0.5 }]);
+  assert.deepEqual(byEdge.get('e1'), [{ boxCode: 'DEMO-A', progress: 0, queueKey: 0 }]);
+  assert.deepEqual(byEdge.get('e2'), [{ boxCode: 'DEMO-B', progress: 0.5, queueKey: 1.5 }]);
 });
 
 test('boxTrackerCratesByEdge: places a non-terminal box on the edge matching elapsed time', () => {
@@ -338,7 +338,7 @@ test('boxTrackerCratesByEdge: places a non-terminal box on the edge matching ela
   const { byEdge, expired } = boxTrackerCratesByEdge(entries, 1500, { crateMsPerEdge: 1000, stopMargin: 0.5 });
 
   assert.deepEqual(expired, []);
-  assert.deepEqual(byEdge.get('e2'), [{ boxCode: 'BOX-1', progress: 0.5, waiting: false }]);
+  assert.deepEqual(byEdge.get('e2'), [{ boxCode: 'BOX-1', progress: 0.5, waiting: false, queueKey: 1.5 }]);
 });
 
 test('boxTrackerCratesByEdge: non-terminal box stops at stopMargin short of the end and is flagged waiting', () => {
@@ -347,7 +347,22 @@ test('boxTrackerCratesByEdge: non-terminal box stops at stopMargin short of the 
   // elapsedEdges = 3.0, cap = 3 - 0.5 = 2.5 → clamped, waiting once elapsed reaches cap.
   const { byEdge } = boxTrackerCratesByEdge(entries, 3000, { crateMsPerEdge: 1000, stopMargin: 0.5 });
 
-  assert.deepEqual(byEdge.get('e3'), [{ boxCode: 'BOX-1', progress: 0.5, waiting: true }]);
+  assert.deepEqual(byEdge.get('e3'), [{ boxCode: 'BOX-1', progress: 0.5, waiting: true, queueKey: 3 }]);
+});
+
+test('boxTrackerCratesByEdge: two boxes clamped to the same waiting spot get identical progress but distinct queueKey (so the canvas can queue them instead of overlapping them)', () => {
+  const entries = [
+    // BOX-OLD has been elapsing far longer than the stop cap — it arrived first.
+    ['BOX-OLD', { edgeIds: ['e1', 'e2', 'e3'], terminal: false, legStartAt: -5000 }],
+    // BOX-NEW just reached the same clamped spot — it arrived after BOX-OLD.
+    ['BOX-NEW', { edgeIds: ['e1', 'e2', 'e3'], terminal: false, legStartAt: 0 }]
+  ];
+
+  const { byEdge } = boxTrackerCratesByEdge(entries, 3000, { crateMsPerEdge: 1000, stopMargin: 0.5 });
+
+  const [oldEntry, newEntry] = byEdge.get('e3');
+  assert.equal(oldEntry.progress, newEntry.progress); // same clamped spot
+  assert.ok(oldEntry.queueKey > newEntry.queueKey); // but BOX-OLD's raw elapsed time is greater → sorts to the front
 });
 
 test('boxTrackerCratesByEdge: terminal box still in flight is not capped by stopMargin and is never waiting', () => {
@@ -356,7 +371,7 @@ test('boxTrackerCratesByEdge: terminal box still in flight is not capped by stop
   const { byEdge, expired } = boxTrackerCratesByEdge(entries, 2500, { crateMsPerEdge: 1000, stopMargin: 0.5 });
 
   assert.deepEqual(expired, []);
-  assert.deepEqual(byEdge.get('e3'), [{ boxCode: 'BOX-1', progress: 0.5, waiting: false }]);
+  assert.deepEqual(byEdge.get('e3'), [{ boxCode: 'BOX-1', progress: 0.5, waiting: false, queueKey: 2.5 }]);
 });
 
 test('boxTrackerCratesByEdge: terminal box that fully reached the end is reported via expired, not placed on an edge', () => {

@@ -7237,9 +7237,24 @@ function drawCanvasScene() {
       }
       ctx.stroke();
       const demoCrates = demoCratesByEdge.get(edge.id) || [];
-      demoCrates.forEach(crate => {
-        if (L > 18) drawKltCrate(ctx, _polyAt(pts, Math.max(4, Math.min(L - 4, L * crate.progress))), crate.waiting);
-      });
+      // Viac KLT na tom istom úseku (typicky viacero "waiting" bední čakajúcich
+      // na potvrdenie od ďalšieho čidla) by inak vykreslilo všetky na presne tú
+      // istú pozíciu (rovnaká zaklampovaná `progress`) — vizuálne by splynuli do
+      // jednej. Zoradíme podľa queueKey (kto tam je najdlhšie, je vpredu) a
+      // každú ďalšiu zatlačíme aspoň CRATE_QUEUE_SPACING za tou predošlou, takže
+      // sa zoradia do vláčika namiesto prekrytia.
+      if (L > 18 && demoCrates.length) {
+        const CRATE_QUEUE_SPACING = 16; // > ~14 world-units šírka drawKltCrate
+        const ordered = demoCrates.slice().sort((a, b) => (b.queueKey ?? 0) - (a.queueKey ?? 0));
+        let prevPx = Infinity;
+        ordered.forEach(crate => {
+          let px = L * crate.progress;
+          if (prevPx !== Infinity) px = Math.min(px, prevPx - CRATE_QUEUE_SPACING);
+          px = Math.max(4, Math.min(L - 4, px));
+          prevPx = px;
+          drawKltCrate(ctx, _polyAt(pts, px), crate.waiting);
+        });
+      }
       // 4) info pilulka
       if (utilOn) {
         const labelText = (isOccupied ? 'OBS · ' : '') + Math.round(sim.flow[edge.id] || 0) + ' · ' + Math.round(u * 100) + '%';

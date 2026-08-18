@@ -2,6 +2,17 @@
 
 Formát vychází z [Keep a Changelog](https://keepachangelog.com/), verze podle [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH — pravidlo bumpu viz `AGENTS.md`).
 
+## [3.2.1] - 2026-08-18
+
+- Opraveno: keď bolo na tom istom úseku naraz viac KLT (typicky viacero
+  bední čakajúcich na potvrdenie od ďalšieho čidla), všetky sa vykreslili
+  na presne tú istú zaklampovanú pozíciu a vizuálne splynuli do jednej.
+  `demoCratesByEdgeAt`/`boxTrackerCratesByEdge` (`src/live-events.mjs`)
+  teraz vracajú aj nezaklampovaný `queueKey`; kresliaca slučka
+  (`drawCanvasScene` v `src/index.html`) podľa neho zoradí bedny na
+  úseku (najdlhšie čakajúca vpredu) a každú ďalšiu zatlačí aspoň o
+  šírku bedny dozadu — namiesto jednej bedny sa tak zobrazí vláčik.
+
 ## [3.2.0] - 2026-08-18
 
 - Kliknutím na úsek dopravníka sa v paneli vlastností teraz zobrazí sekcia
