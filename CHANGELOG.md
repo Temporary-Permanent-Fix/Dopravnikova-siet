@@ -2,6 +2,18 @@
 
 Formát vychází z [Keep a Changelog](https://keepachangelog.com/), verze podle [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH — pravidlo bumpu viz `AGENTS.md`).
 
+## [3.4.1] - 2026-08-18
+
+- Prekreslená úvodná (intro/splash) obrazovka (`#intro-overlay` v
+  `src/index.html`), aby používala rovnaké designové tokeny ako
+  samotná aplikácia namiesto zvyškov staršieho svetlého/modrého
+  konceptu (`design_handoff_intro_screen`). Pozadie plátna, scrim,
+  pilulka "Přeskočit" a logo Alza.cz teraz vychádzajú z tmavej témy
+  (`--bg`, `--surface`), a CTA tlačidlo, hero ikonka, eyebrow popisok
+  a progress bodka/pruh z akcentovej zelenej (`--accent`) namiesto
+  `--brand-blue`. Predtým bol uvítací text bielou farbou na bielom
+  plátne prakticky neviditeľný.
+
 ## [3.4.0] - 2026-08-18
 
 - Nahradený `src/sklc3.json` aktuálnym layoutom (2026-08-10) s Kibana
