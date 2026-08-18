@@ -28,6 +28,7 @@ The app's release version lives in `package.json`'s `"version"` field (semver `M
 - `server/live-events.mjs` — normalization and live-event processing.
 - `server/*.test.mjs` — regression tests for mapping and event behavior.
 - `src/sklc3.json` and `src/sklc3-telemetry.json` — runtime layout and telemetry data.
+- `src/kibana-csv-import.mjs` — parses a Kibana Discover CSV export into the canonical event-record shape, for the offline "🧪 Replay CSV" panel (`server/kibana-csv-import.test.mjs`).
 
 ## Domain notes
 - The telemetry pipeline is centered around agent/direction/edgeId semantics.

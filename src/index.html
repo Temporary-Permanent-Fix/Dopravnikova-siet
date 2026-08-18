@@ -1169,6 +1169,25 @@ body {
 .live-logs-panel .live-logs-table .lg-level.warn { color: #f5c268; }
 .live-logs-panel .live-logs-table .lg-level.error { color: #ff9b9b; }
 .live-logs-panel .live-logs-empty { color: var(--text-tertiary); font-style: italic; }
+.replay-panel {
+  margin-top: 8px;
+  padding: 7px 10px;
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  font: 11px 'IBM Plex Mono', monospace;
+}
+.replay-panel .replay-hint { color: var(--text-tertiary); font-style: italic; margin-bottom: 8px; line-height: 1.5; }
+.replay-panel .replay-status { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 8px; color: var(--text-secondary); margin-bottom: 6px; }
+.replay-panel .replay-breakdown { display: flex; flex-wrap: wrap; align-items: center; gap: 5px 8px; color: var(--text-secondary); margin-bottom: 8px; }
+.replay-panel .replay-agents { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-bottom: 8px; padding: 6px 8px; border: 1px solid var(--border); border-radius: 5px; background: var(--surface-secondary, var(--surface)); }
+.replay-panel .replay-agent { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+.replay-panel .replay-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-bottom: 8px; }
+.replay-panel .replay-speed.active { background: var(--accent); color: var(--bg); }
+.replay-panel .replay-scrub-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.replay-panel .replay-scrub { flex: 1; }
+.replay-panel .replay-clock { white-space: nowrap; color: var(--text); font-weight: 600; }
+.replay-panel .replay-errors { color: #f5c268; margin-top: 6px; }
 .kibana-view-panel {
   /* .sim-panel is a row-direction flex container; without an explicit width
      this panel (often empty — its real content is the native WebContentsView
@@ -1797,6 +1816,7 @@ kbd {
           <button class="btn-sim" id="btn-live-logs-movement" title="Animácia KLT pohybu na plátne podľa živých dát z vstavanej Kibana karty alebo browser extension">▶ Živý pohyb</button>
           <button class="btn-sim" id="btn-kibana-view" title="Vstavaná Kibana — prihlás sa priamo tu, appka z tejto session na pozadí číta dáta (nahrádza browser extension v desktop builde)">🌐 Kibana</button>
           <button class="icon-btn" id="btn-kibana-maximize" title="Kibana na celú obrazovku" hidden><i class="ti ti-arrows-maximize"></i></button>
+          <button class="btn-sim" id="btn-replay" title="Offline prehrávanie z CSV exportu Kibana Discoveru (napr. export do Excelu) — bez pripojenia na Kibanu, na testovanie/nácvik vizualizácie pohybu">🧪 Replay CSV</button>
           <button class="btn-sim-export" id="btn-export-sim" disabled title="Nejdřív spusť Optimalizaci">⤓ TMS matice (CSV)</button>
           <button class="btn-sim-export" id="btn-export-assignment" disabled title="Nejdřív naimportuj trasy v Matici cílů">⤓ Cíl × trasa (CSV)</button>
           <div class="toolbar-dropdown" id="sim-tabs-settings-dropdown">
@@ -1809,6 +1829,7 @@ kbd {
               <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-live-logs" checked> 📋 Live logs</label>
               <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-live-logs-movement" checked> ▶ Živý pohyb</label>
               <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-kibana-view" checked> 🌐 Kibana</label>
+              <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-replay" checked> 🧪 Replay CSV</label>
               <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-export-sim" checked> ⤓ TMS matice (CSV)</label>
               <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-export-assignment" checked> ⤓ Cíl × trasa (CSV)</label>
             </div>
@@ -1819,6 +1840,8 @@ kbd {
         <div class="live-filter-panel" id="live-filter-panel" hidden aria-live="polite"></div>
         <div class="live-logs-panel" id="live-logs-panel" hidden aria-live="polite"></div>
         <div class="kibana-view-panel" id="kibana-view-panel" hidden aria-live="polite"></div>
+        <div class="replay-panel" id="replay-panel" hidden aria-live="polite"></div>
+        <input type="file" id="replay-csv-input" accept=".csv,text/csv" style="display:none">
         <span class="sim-result" id="sim-result">
           <span class="empty">Rovnoměrné = každý uzel rozdělí tok stejnoměrně. Optimalizace = LP najde nejlepší rozdělení podle podílů cílů.</span>
         </span>
@@ -2650,6 +2673,29 @@ const state = {
   liveLogsLastUpdate: null,
   liveLogsWatchdog: null,
   liveLogsMovementActive: false,
+  // Offline "🧪 Replay CSV" — testovacie/nácvičné prehrávanie z Kibana CSV
+  // exportu, bez pripojenia na Kibanu. Nesúvisí s liveLogsRecords/boxTracker
+  // (tie zdieľa live-logs cesta) okrem toho, že applySnapshotToSimulation()
+  // zapisuje do rovnakého state.boxTracker aj v móde 'replay'.
+  replay: {
+    open: false,
+    fileName: null,
+    sortedRecords: [],   // všetky naimportované záznamy, zoradené vzostupne podľa dateTime
+    rowErrors: [],        // [{rowIndex, reason}] z parseKibanaCsv()
+    columnsSummary: null, // ktoré stĺpce sa v CSV rozpoznali
+    agents: [],            // zoznam odlíšených agentov z importu
+    selectedAgents: new Set(), // podmnožina agentov v scope prehrávania (default = všetci)
+    filteredRecords: [],   // sortedRecords filtrované na selectedAgents
+    minTime: null, maxTime: null, // hranice filteredRecords (epoch ms)
+    cursorMs: null,          // aktuálna pozícia simulovaných hodín
+    nextIndex: 0,             // koľko z filteredRecords už bolo "prehraných"
+    playing: false,
+    speed: 1,
+    tickTimer: null,
+    lastTickPerfMs: null,
+    unmappedEvents: [],       // posledné unmappedEvents z buildSnapshot() pre replay (oddelené od liveLogsUnmapped)
+    mappingData: null          // sklc3-telemetry.json načítané raz pri importe (nie na každý tick)
+  },
   kibanaViewOpen: false,
   kibanaMaximized: false,
   kibanaLoadStatus: 'loading', // 'loading' | 'loaded' | 'error' — mirrors electron/kibana-view-load.mjs state
@@ -3657,6 +3703,11 @@ function clearSimulation() {
     clearInterval(state.telemetryDemoTimer);
     state.telemetryDemoTimer = null;
   }
+  if (state.replay.tickTimer) {
+    clearInterval(state.replay.tickTimer);
+    state.replay.tickTimer = null;
+  }
+  state.replay.playing = false;
   state.liveLogsMovementActive = false;
   state.liveLogsUnmapped = [];
   state.simulation = null;
@@ -3691,6 +3742,7 @@ function clearSimulation() {
   renderFloorTabs();
   renderSimDetails();
   updateExportButton();
+  renderReplayPanel();
   render();
 }
 
@@ -4108,6 +4160,7 @@ function applyTelemetryDemo(mappingData, tick) {
   };
   renderFloorTabs();
   render();
+  refreshEdgeKltPanel();
 }
 
 async function loadTelemetryMapping() {
@@ -4306,7 +4359,7 @@ function applySnapshotToSimulation(snapshot, mode) {
     edgeIds: Array.isArray(box.edgeIds) && box.edgeIds.length ? box.edgeIds : [box.edgeId],
     offset: index / Math.max((snapshot.boxes || []).length, 1)
   })).filter(crate => crate.edgeIds[0]);
-  if (mode === 'live-logs') updateBoxTracker(snapshot.boxes || []);
+  if (mode === 'live-logs' || mode === 'replay') updateBoxTracker(snapshot.boxes || []);
   state.simulation = {
     mode, flow, utilization,
     throughput: Object.values(flow).reduce((sum, rate) => sum + rate, 0),
@@ -4314,6 +4367,16 @@ function applySnapshotToSimulation(snapshot, mode) {
     portalFlow: {}, crossFloor: true, demoCrates, occupied
   };
   return { flow, utilization, occupied, demoCrates };
+}
+
+// Zdieľaná časť medzi applyLiveLogsMovement() a applyReplayMovement(): zavolá
+// buildSnapshot() (src/live-events.mjs) a premietne výsledok do state.simulation.
+function buildAndApplySnapshot(recordsAsc, mode, windowSeconds, mappingData) {
+  const snapshot = window.buildSnapshot(
+    recordsAsc, mappingData, { nodes: state.nodes, edges: state.edges }, windowSeconds
+  );
+  const { flow, demoCrates } = applySnapshotToSimulation(snapshot, mode);
+  return { snapshot, flow, demoCrates };
 }
 
 async function applyLiveLogsMovement(records) {
@@ -4334,11 +4397,8 @@ async function applyLiveLogsMovement(records) {
     const LIVE_LOGS_WINDOW_SECONDS = 60; // aproximácia pre ratePerHour/utilization
                                           // (bridge dopyt nie je časovo okienkovaný;
                                           // netýka sa pozícií KLT, len farby vyťaženia)
-    const snapshot = window.buildSnapshot(
-      sorted, mappingData, { nodes: state.nodes, edges: state.edges }, LIVE_LOGS_WINDOW_SECONDS
-    );
+    const { snapshot, flow, demoCrates } = buildAndApplySnapshot(sorted, 'live-logs', LIVE_LOGS_WINDOW_SECONDS, mappingData);
 
-    const { flow, demoCrates } = applySnapshotToSimulation(snapshot, 'live-logs');
     state.liveLogsUnmapped = snapshot.unmappedEvents || [];
     const mapped = Object.values(flow).filter(rate => rate > 0).length;
     document.getElementById('sim-result').innerHTML =
@@ -4350,9 +4410,340 @@ async function applyLiveLogsMovement(records) {
     renderFloorTabs();
     renderSimDetails();
     render();
+    refreshEdgeKltPanel();
   } catch (err) {
     flash('✗ Živý pohyb sa nepodarilo aplikovať: ' + err.message);
   }
+}
+
+// ---------------------------------------------------------------------------
+// 🧪 Replay CSV — offline testovacie/nácvičné prehrávanie z Kibana CSV
+// exportu (napr. "Generate CSV" z Discoveru / export do Excelu), bez
+// pripojenia na Kibanu. Zdieľa buildAndApplySnapshot()/updateBoxTracker()/
+// crate-glide canvas kód so "▶ Živý pohyb" (mode: 'replay' namiesto
+// 'live-logs') — jediné nové je "feeder", ktorý podľa simulovaných hodín
+// rozhoduje, ktorý prefix naimportovaných záznamov je už "viditeľný".
+// ---------------------------------------------------------------------------
+
+const REPLAY_SPEEDS = [1, 5, 20, 60, 300];
+const REPLAY_TICK_MS = 250;
+const REPLAY_WINDOW_SECONDS = 60; // rovnaká aproximácia ako LIVE_LOGS_WINDOW_SECONDS
+
+function formatClock(ms) {
+  if (!Number.isFinite(ms)) return '—';
+  return new Date(ms).toLocaleString('sk-SK', { hour12: false });
+}
+
+function toggleReplayPanel() {
+  state.replay.open = !state.replay.open;
+  const btn = document.getElementById('btn-replay');
+  if (btn) btn.classList.toggle('active', state.replay.open);
+  renderReplayPanel();
+}
+
+function recomputeReplayFilteredRecords() {
+  const r = state.replay;
+  r.filteredRecords = r.sortedRecords.filter(rec => r.selectedAgents.has(rec.agent));
+  if (r.filteredRecords.length) {
+    r.minTime = Date.parse(r.filteredRecords[0].dateTime);
+    r.maxTime = Date.parse(r.filteredRecords[r.filteredRecords.length - 1].dateTime);
+  } else {
+    r.minTime = null;
+    r.maxTime = null;
+  }
+}
+
+// Po importe CSV / zmene výberu agentov priblíži plátno presne na úsek(y),
+// ktorými môžu prechádzať bedny vybraných agentov — t.j. na skutočné pasívne
+// segmenty (passiveSegment, rovnaká logika ako buildSnapshot) k najbližšiemu
+// ďalšiemu čidlu, nie len na "susedné uzly v grafe" (to by pri agentovi s
+// viacerými vzdialenými vetvami — napr. diverter s odbočkami naprieč sieťou —
+// stále vyzoomovalo príliš široko). Bez tohto by KLT bedna na fit-to-content
+// zoome (desiatky % na 194 uzloch) bola len pár pixelov a pohyb nebolo vidno.
+function zoomReplayToSelection() {
+  const r = state.replay;
+  const layout = { nodes: state.nodes, edges: state.edges };
+  const mappings = r.mappingData?.mappings || {};
+  const telemetryAgents = new Set(Object.keys(mappings).map(key => key.split(':')[0]));
+  const relevantEdgeIds = new Set();
+  Object.entries(mappings).forEach(([key, edgeId]) => {
+    if (!r.selectedAgents.has(key.split(':')[0])) return;
+    (window.passiveSegment?.(edgeId, layout, telemetryAgents) || [edgeId]).forEach(id => relevantEdgeIds.add(id));
+  });
+  const ids = new Set();
+  state.edges.forEach(e => {
+    if (relevantEdgeIds.has(e.id)) { ids.add(e.from); ids.add(e.to); }
+  });
+  // Fallback: vybraný agent nemá žiadne mapovanie (napr. mimo sklc3-telemetry.json)
+  // — aspoň orámuj jeho vlastný uzol, nech vie operátor kde na sieti je.
+  if (!ids.size) state.nodes.filter(n => r.selectedAgents.has(n.label)).forEach(n => ids.add(n.id));
+  if (!ids.size) return;
+
+  const idNodes = state.nodes.filter(n => ids.has(n.id));
+  const floorCounts = new Map();
+  idNodes.forEach(n => floorCounts.set(n.floor, (floorCounts.get(n.floor) || 0) + 1));
+  const bestFloor = [...floorCounts.entries()].sort((a, b) => b[1] - a[1])[0][0];
+  if (state.activeFloor !== bestFloor) {
+    state.activeFloor = bestFloor;
+    renderFloorTabs();
+  }
+  fitToNodes(idNodes.filter(n => n.floor === bestFloor).map(n => n.id));
+}
+
+function handleReplayCsvFile(file) {
+  const reader = new FileReader();
+  reader.onload = async () => {
+    const text = String(reader.result || '');
+    let parsed;
+    try {
+      parsed = window.parseKibanaCsv(text);
+    } catch (err) {
+      flash('✗ CSV sa nepodarilo spracovať: ' + err.message);
+      return;
+    }
+    if (!parsed.records.length) {
+      flash('⚠ V CSV sa nenašli žiadne platné záznamy (skontroluj stĺpce čas/agent).');
+      return;
+    }
+    let mappingData;
+    try {
+      mappingData = await loadTelemetryMapping();
+    } catch (err) {
+      flash('✗ Nepodarilo sa načítať sklc3-telemetry.json: ' + err.message);
+      return;
+    }
+    clearSimulation();
+    const sortedRecords = parsed.records.slice().sort((a, b) => Date.parse(a.dateTime) - Date.parse(b.dateTime));
+    const agents = [...new Set(sortedRecords.map(rec => rec.agent))].sort();
+    state.replay.open = true;
+    state.replay.fileName = file.name;
+    state.replay.sortedRecords = sortedRecords;
+    state.replay.rowErrors = parsed.rowErrors;
+    state.replay.columnsSummary = parsed.columnsSummary;
+    state.replay.agents = agents;
+    state.replay.selectedAgents = new Set(agents);
+    state.replay.nextIndex = 0;
+    state.replay.speed = 1;
+    state.replay.unmappedEvents = [];
+    state.replay.mappingData = mappingData;
+    recomputeReplayFilteredRecords();
+    state.replay.cursorMs = state.replay.minTime;
+    zoomReplayToSelection();
+    flash(`✓ Naimportovaných ${sortedRecords.length} udalostí z ${file.name}` +
+      (parsed.rowErrors.length ? ` · ${parsed.rowErrors.length} riadkov preskočených` : ''));
+    renderReplayPanel();
+  };
+  reader.onerror = () => flash('⚠ Súbor sa nepodarilo načítať');
+  reader.readAsText(file, 'utf-8');
+}
+
+function clearReplayImport() {
+  if (state.replay.tickTimer) clearInterval(state.replay.tickTimer);
+  if (state.simulation && state.simulation.mode === 'replay') {
+    state.simulation = null;
+    state.boxTracker = new Map();
+  }
+  state.replay = {
+    open: true, fileName: null, sortedRecords: [], rowErrors: [], columnsSummary: null,
+    agents: [], selectedAgents: new Set(), filteredRecords: [], minTime: null, maxTime: null,
+    cursorMs: null, nextIndex: 0, playing: false, speed: 1, tickTimer: null, lastTickPerfMs: null,
+    unmappedEvents: [], mappingData: null
+  };
+  renderFloorTabs();
+  renderSimDetails();
+  render();
+  renderReplayPanel();
+}
+
+function toggleReplayAgent(agent, checked) {
+  if (checked) state.replay.selectedAgents.add(agent);
+  else state.replay.selectedAgents.delete(agent);
+  recomputeReplayFilteredRecords();
+  seekReplayTo(state.replay.cursorMs ?? state.replay.minTime);
+  zoomReplayToSelection();
+  renderReplayPanel();
+}
+
+function setReplayAgentsAll(on) {
+  state.replay.selectedAgents = on ? new Set(state.replay.agents) : new Set();
+  recomputeReplayFilteredRecords();
+  seekReplayTo(state.replay.cursorMs ?? state.replay.minTime);
+  zoomReplayToSelection();
+  renderReplayPanel();
+}
+
+function setReplaySpeed(mult) {
+  state.replay.speed = mult;
+  renderReplayPanel();
+}
+
+// Index prvého záznamu ešte NEprehraného v čase `ms`, hľadané okolo `fromIndex`
+// (namiesto vždy od nuly) — pri bežnom prehrávaní sa cursorMs len zvyšuje,
+// takže toto je typicky O(1) namiesto O(n) na každý tick.
+function replayIndexAtOrBefore(ms, fromIndex) {
+  const arr = state.replay.filteredRecords;
+  let index = Math.max(0, Math.min(fromIndex, arr.length));
+  while (index < arr.length && Date.parse(arr[index].dateTime) <= ms) index++;
+  while (index > 0 && Date.parse(arr[index - 1].dateTime) > ms) index--;
+  return index;
+}
+
+function applyReplayMovement(recordsAsc) {
+  if (!state.replay.mappingData) return;
+  try {
+    const { snapshot, flow, demoCrates } = buildAndApplySnapshot(
+      recordsAsc.slice(-500), 'replay', REPLAY_WINDOW_SECONDS, state.replay.mappingData
+    );
+    state.replay.unmappedEvents = snapshot.unmappedEvents || [];
+    const mapped = Object.values(flow).filter(rate => rate > 0).length;
+    document.getElementById('sim-result').innerHTML =
+      `<span><strong>Replay CSV</strong> ·</span>` +
+      `<span>${recordsAsc.length} udalostí do teraz</span>` +
+      `<span>${mapped} aktívnych pásov</span>` +
+      `<span>${demoCrates.length} KLT</span>`;
+    document.getElementById('sim-legend').style.display = 'flex';
+    renderFloorTabs();
+    renderSimDetails();
+    render();
+    refreshEdgeKltPanel();
+  } catch (err) {
+    flash('✗ Replay sa nepodarilo aplikovať: ' + err.message);
+  }
+}
+
+function syncReplayPlayButton() {
+  const btn = document.getElementById('replay-play-btn');
+  if (btn) btn.textContent = state.replay.playing ? '⏸ Pauza' : '▶ Prehrať';
+}
+
+function updateReplayClockUI() {
+  const r = state.replay;
+  const clockEl = document.getElementById('replay-clock');
+  if (clockEl) clockEl.textContent = `${formatClock(r.cursorMs)} (${r.nextIndex}/${r.filteredRecords.length})`;
+  const scrubEl = document.getElementById('replay-scrub');
+  if (scrubEl && document.activeElement !== scrubEl) scrubEl.value = String(r.cursorMs ?? r.minTime ?? 0);
+}
+
+// Manuálny skok na čas `ms` (ťahanie posuvníka, alebo reseek po zmene filtra
+// agentov) — "studený" reset: zahodí rozbehnuté boxTracker legy a postaví ich
+// odznova k danému bodu na časovej osi, presne ako pri prepnutí sim módu.
+// Zámerne nevolá plný renderReplayPanel() (to by pri ťahaní posuvníka
+// prestavovalo <input type="range"> pod kurzorom) — len ľahké DOM update.
+function seekReplayTo(ms) {
+  const r = state.replay;
+  if (r.minTime == null) return;
+  if (r.tickTimer) { clearInterval(r.tickTimer); r.tickTimer = null; }
+  r.playing = false;
+  r.cursorMs = Math.min(r.maxTime, Math.max(r.minTime, ms));
+  r.nextIndex = replayIndexAtOrBefore(r.cursorMs, 0);
+  state.boxTracker = new Map();
+  applyReplayMovement(r.filteredRecords.slice(0, r.nextIndex));
+  syncReplayPlayButton();
+  updateReplayClockUI();
+}
+
+function replayTick() {
+  const r = state.replay;
+  const now = performance.now();
+  const elapsedMs = now - (r.lastTickPerfMs ?? now);
+  r.lastTickPerfMs = now;
+  r.cursorMs = Math.min(r.maxTime, (r.cursorMs ?? r.minTime) + elapsedMs * r.speed);
+  const newIndex = replayIndexAtOrBefore(r.cursorMs, r.nextIndex);
+  if (newIndex !== r.nextIndex) {
+    r.nextIndex = newIndex;
+    applyReplayMovement(r.filteredRecords.slice(0, r.nextIndex));
+  }
+  updateReplayClockUI();
+  if (r.cursorMs >= r.maxTime) pauseReplay();
+}
+
+function playReplay() {
+  const r = state.replay;
+  if (!r.filteredRecords.length) { flash('⚠ Vyber aspoň jedného agenta so záznamami.'); return; }
+  if (r.cursorMs == null || r.cursorMs >= r.maxTime) {
+    r.cursorMs = r.minTime;
+    r.nextIndex = 0;
+    state.boxTracker = new Map();
+  }
+  r.playing = true;
+  r.lastTickPerfMs = performance.now();
+  r.tickTimer = setInterval(replayTick, REPLAY_TICK_MS);
+  renderReplayPanel();
+}
+
+function pauseReplay() {
+  const r = state.replay;
+  if (r.tickTimer) { clearInterval(r.tickTimer); r.tickTimer = null; }
+  r.playing = false;
+  renderReplayPanel();
+}
+
+function toggleReplayPlay() {
+  if (state.replay.playing) pauseReplay(); else playReplay();
+}
+
+function renderReplayPanel() {
+  const el = document.getElementById('replay-panel');
+  if (!el) return;
+  if (!state.replay.open) { el.hidden = true; return; }
+  el.hidden = false;
+  const r = state.replay;
+
+  if (!r.sortedRecords.length) {
+    el.innerHTML = `
+      <div class="replay-hint">Offline testovacie prostredie — naimportuj CSV export z Kibana Discoveru
+      (napr. tlačidlo "Generate CSV" alebo export do Excelu) a prehraj si pohyb bez pripojenia na Kibanu.
+      Pre najlepší výsledok pridaj do Discoveru pred exportom stĺpce: čas (@timestamp), message a agenta
+      (headers.x-AgentName). Ak pridáš aj messageTemplate/messageParams.*, appka ich použije priamo namiesto
+      rozpoznávania z textu správy.</div>
+      <button class="btn btn-primary" type="button" id="replay-import-btn"><i class="ti ti-upload"></i> Importovať CSV</button>`;
+    document.getElementById('replay-import-btn')?.addEventListener('click', () => document.getElementById('replay-csv-input')?.click());
+    return;
+  }
+
+  const statusHtml = `<div class="replay-status">` +
+      `<span>📄 ${escapeHtml(r.fileName || '')}</span>` +
+      `<span class="live-separator">·</span><span>${r.sortedRecords.length} udalostí</span>` +
+      (r.rowErrors.length ? `<span class="live-separator">·</span><span class="replay-errors">${r.rowErrors.length} riadkov preskočených</span>` : '') +
+      `<span class="live-separator">·</span><button class="btn" type="button" id="replay-clear-btn">Zrušiť import</button>` +
+      `<span class="live-separator">·</span><button class="btn" type="button" id="replay-import-btn"><i class="ti ti-upload"></i> Nahradiť CSV</button>` +
+    `</div>`;
+
+  const agentsHtml = `<div class="replay-agents">` +
+      `<span>Agenti (úsek):</span>` +
+      `<button class="btn" type="button" id="replay-agents-all">všetci</button>` +
+      `<button class="btn" type="button" id="replay-agents-none">žiadny</button>` +
+      r.agents.map(agent => `
+        <label class="replay-agent"><input type="checkbox" data-agent="${escapeHtml(agent)}" ${r.selectedAgents.has(agent) ? 'checked' : ''}> ${escapeHtml(agent)}</label>`).join('') +
+    `</div>`;
+
+  const hasRange = r.minTime != null && r.maxTime != null && r.minTime < r.maxTime;
+  const controlsHtml = `<div class="replay-controls">` +
+      `<button class="btn btn-primary" type="button" id="replay-play-btn" ${hasRange ? '' : 'disabled'}>${r.playing ? '⏸ Pauza' : '▶ Prehrať'}</button>` +
+      REPLAY_SPEEDS.map(mult => `<button class="btn replay-speed${r.speed === mult ? ' active' : ''}" type="button" data-speed="${mult}">${mult}×</button>`).join('') +
+    `</div>`;
+
+  const scrubHtml = hasRange
+    ? `<div class="replay-scrub-row">` +
+        `<input type="range" class="replay-scrub" id="replay-scrub" min="${r.minTime}" max="${r.maxTime}" value="${r.cursorMs ?? r.minTime}">` +
+        `<span class="replay-clock" id="replay-clock">${escapeHtml(formatClock(r.cursorMs))} (${r.nextIndex}/${r.filteredRecords.length})</span>` +
+      `</div>`
+    : `<div class="replay-hint">Vyber aspoň jedného agenta, aby bolo čo prehrať.</div>`;
+
+  const unmapped = r.unmappedEvents || [];
+  const unmappedHtml = unmapped.length
+    ? `<div class="replay-errors">⚠ ${unmapped.length} nemapovaných/nejednoznačných udalostí (detaily nižšie v paneli súhrnu simulácie)</div>` : '';
+
+  el.innerHTML = statusHtml + agentsHtml + controlsHtml + scrubHtml + unmappedHtml;
+
+  document.getElementById('replay-clear-btn')?.addEventListener('click', clearReplayImport);
+  document.getElementById('replay-import-btn')?.addEventListener('click', () => document.getElementById('replay-csv-input')?.click());
+  document.getElementById('replay-agents-all')?.addEventListener('click', () => setReplayAgentsAll(true));
+  document.getElementById('replay-agents-none')?.addEventListener('click', () => setReplayAgentsAll(false));
+  el.querySelectorAll('[data-agent]').forEach(input => input.addEventListener('change', e => toggleReplayAgent(e.target.dataset.agent, e.target.checked)));
+  document.getElementById('replay-play-btn')?.addEventListener('click', toggleReplayPlay);
+  el.querySelectorAll('.replay-speed').forEach(btn => btn.addEventListener('click', () => setReplaySpeed(Number(btn.dataset.speed))));
+  document.getElementById('replay-scrub')?.addEventListener('input', e => seekReplayTo(Number(e.target.value)));
 }
 
 // Spodní panel už needituje cíle ani balení — cíle se nastavují přes „Matice
@@ -4540,9 +4931,11 @@ function renderSimDetails() {
         </div>`;
       }).join('');
 
-  const unmappedEvents = sim.mode === 'live-logs' ? (state.liveLogsUnmapped || []) : [];
-  const liveIssuesHtml = sim.mode !== 'live-logs' ? '' : `<div class="sd-section" style="grid-column: 1 / -1;">
-      <h4>Live udalosti vyžadujúce kontrolu</h4>
+  const isLiveOrReplay = sim.mode === 'live-logs' || sim.mode === 'replay';
+  const unmappedEvents = sim.mode === 'live-logs' ? (state.liveLogsUnmapped || [])
+    : sim.mode === 'replay' ? (state.replay.unmappedEvents || []) : [];
+  const liveIssuesHtml = !isLiveOrReplay ? '' : `<div class="sd-section" style="grid-column: 1 / -1;">
+      <h4>${sim.mode === 'replay' ? 'Replay' : 'Live'} udalosti vyžadujúce kontrolu</h4>
       ${unmappedEvents.length === 0
         ? '<div class="sd-empty">žiadne nemapované ani nejednoznačné udalosti</div>'
         : unmappedEvents.slice(-8).reverse().map(event => {
@@ -4644,7 +5037,7 @@ function renderSimDetails() {
   el.innerHTML = `
     <div class="sd-grid">
       <div class="sd-section">
-        <h4>${sim.mode === 'live-logs' ? 'Live ramená (OBS = obsadené)' : 'Top 5 hran (max vytížení)'}</h4>
+        <h4>${sim.mode === 'live-logs' ? 'Live ramená (OBS = obsadené)' : sim.mode === 'replay' ? 'Replay ramená (OBS = obsadené)' : 'Top 5 hran (max vytížení)'}</h4>
         ${topEdgesHtml}
       </div>
       <div class="sd-section">
@@ -6601,6 +6994,26 @@ const CRATE_MS_PER_EDGE = 2600;
 // "hranových jednotiek" pred koncovým uzlom (ďalším čidlom), kým nepríde
 // reálne potvrdenie z Kibany (viď updateBoxTracker).
 const STOP_MARGIN = 0.12;
+
+// Single source of truth for "where are the crates right now?" — used by both
+// the canvas draw loop (drawCanvasScene) and the edge inspector panel
+// (renderEdgeKltBadges), so they never drift. Delegates the actual per-mode
+// math to src/live-events.mjs (demoCratesByEdgeAt / boxTrackerCratesByEdge),
+// which are pure and unit-tested there.
+function computeCratesByEdge() {
+  const sim = state.simulation;
+  if (sim && sim.mode === 'telemetry-demo' && Array.isArray(sim.demoCrates)) {
+    return window.demoCratesByEdgeAt(sim.demoCrates, _cratePhase);
+  }
+  if (sim && (sim.mode === 'live-logs' || sim.mode === 'replay') && state.boxTracker.size) {
+    const { byEdge, expired } = window.boxTrackerCratesByEdge(
+      state.boxTracker, performance.now(), { crateMsPerEdge: CRATE_MS_PER_EDGE, stopMargin: STOP_MARGIN });
+    expired.forEach(boxCode => state.boxTracker.delete(boxCode));
+    return byEdge;
+  }
+  return new Map();
+}
+
 let _cratePhase = 0;
 let _simAnimRAF = null;
 function _simAnimTick(ts) {
@@ -6713,39 +7126,7 @@ function drawCanvasScene() {
   // Which edge of a derived passive segment currently carries each demo KLT.
   // Progress is distributed over the segment's edges; this is intentionally
   // independent of whether intermediate joiners emit their own telemetry.
-  const demoCratesByEdge = new Map();
-  if (sim && sim.mode === 'telemetry-demo' && Array.isArray(sim.demoCrates)) {
-    sim.demoCrates.forEach(crate => {
-      // Constant per-edge speed regardless of chain length (see CRATE_MS_PER_EDGE):
-      // crate.offset spreads different crates' start position along their own chain.
-      const n = crate.edgeIds.length;
-      const scaled = (_cratePhase + crate.offset * n) % n;
-      const edgeIndex = Math.min(n - 1, Math.floor(scaled));
-      const edgeId = crate.edgeIds[edgeIndex];
-      const list = demoCratesByEdge.get(edgeId) || [];
-      list.push({ progress: scaled - edgeIndex });
-      demoCratesByEdge.set(edgeId, list);
-    });
-  } else if (sim && sim.mode === 'live-logs' && state.boxTracker.size) {
-    // Reálne dáta z Kibany: bedna sa priblíži ku koncu svojho segmentu a
-    // zastane STOP_MARGIN pred koncovým uzlom, kým nepríde potvrdenie od
-    // nextAgent (viď updateBoxTracker) — na rozdiel od telemetria-demo sa
-    // pohyb neopakuje v nekonečnej slučke.
-    const nowMs = performance.now();
-    for (const [boxCode, box] of state.boxTracker) {
-      const n = box.edgeIds.length;
-      const elapsedEdges = (nowMs - box.legStartAt) / CRATE_MS_PER_EDGE;
-      const cap = box.terminal ? n : Math.max(0, n - STOP_MARGIN);
-      if (box.terminal && elapsedEdges >= n) { state.boxTracker.delete(boxCode); continue; }
-      const scaled = Math.min(elapsedEdges, cap);
-      const edgeIndex = Math.min(n - 1, Math.floor(scaled));
-      const edgeId = box.edgeIds[edgeIndex];
-      const waiting = !box.terminal && elapsedEdges >= cap;
-      const list = demoCratesByEdge.get(edgeId) || [];
-      list.push({ progress: scaled - edgeIndex, waiting });
-      demoCratesByEdge.set(edgeId, list);
-    }
-  }
+  const demoCratesByEdge = computeCratesByEdge();
   // Plná kvalita i během interakce (LOD vypnuto). Vykreslení je dost rychlé
   // (chevrony dávkově, jeden stroke), takže pohyb zůstává svižný bez ztráty
   // vzhledu. Kdyby na hodně velkých sítích pohyb zadrhával, dá se sem vrátit
@@ -7792,6 +8173,26 @@ function render() {
   }
 }
 
+// Zoznam boxCode/KLT badges pre panel vlastností vybraného úseku, naživo
+// z Kibany (počíta sa cez computeCratesByEdge, rovnaká logika ako vykreslenie
+// bední na plátne). Volané aj z updateProps() (pri otvorení panela), aj z
+// refreshEdgeKltPanel() (pri každom live pollu), aby zoznam sledoval aktuálny
+// stav bez nutnosti klikať znova.
+function renderEdgeKltBadges(edgeId) {
+  const crates = computeCratesByEdge().get(edgeId) || [];
+  if (!crates.length) return '<span style="font-size:12px; color:var(--text-tertiary);">Žiadne KLT</span>';
+  return crates.map(c => `<span style="font-family:monospace; font-size:11.5px; padding:3px 8px; border-radius:999px; background:var(--bg-soft); border:1px solid ${c.waiting ? '#be185d' : 'var(--border)'}; color:${c.waiting ? '#be185d' : 'inherit'};" title="${c.waiting ? 'Čaká na potvrdenie z ďalšieho čidla' : ''}">${escapeHtml(c.boxCode)}</span>`).join('');
+}
+
+// Cielená obnova zoznamu KLT badges pri každom live pollu, bez volania celého
+// updateProps() (to by prepísalo celý panel vrátane <input> polí Popisek/
+// Kapacita a zrušilo rozpracovanú editáciu).
+function refreshEdgeKltPanel() {
+  if (!(state.selected && state.selected.type === 'edge')) return;
+  const list = document.getElementById('edge-klt-list');
+  if (list) list.innerHTML = renderEdgeKltBadges(state.selected.id);
+}
+
 function updateProps() {
   if (!state.selected) {
     propsEl.innerHTML = '<div class="props-eyebrow">Inspektor</div><div class="insp-empty"><i class="ti ti-click"></i><p>Klikni na uzel nebo dopravník pro úpravu vlastností.</p></div>';
@@ -8177,6 +8578,14 @@ function updateProps() {
         · <span style="color:var(--text);">vstup ${edge.toOffset != null ? Math.round(edge.toOffset * 100) + '%' : '50% (střed)'}</span>
         <br><span style="opacity:0.7;">Tip: táhni endpoint marker pro snap na grid-anchor (každých 60 px od středu strany)</span>
         ${(edge.fromOffset != null && edge.fromOffset !== 0.5) || (edge.toOffset != null && edge.toOffset !== 0.5) ? '<br><button class="btn-link" id="prop-reset-offset" style="background:none; border:none; color:var(--accent); cursor:pointer; padding:2px 0; font-size:11.5px; text-decoration:underline; font-family:inherit;">Vrátit oba endpointy na střed</button>' : ''}
+      </div>
+      <div class="field" style="grid-column: 1 / -1; margin-top:4px;">
+        <label>KLT na tomto úseku
+          <span style="font-weight:400; color:var(--text-tertiary); font-size:11px;">— naživo z Kibany</span>
+        </label>
+        <div id="edge-klt-list" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:4px;">
+          ${renderEdgeKltBadges(edge.id)}
+        </div>
       </div>`;
     document.getElementById('prop-label').addEventListener('input', e => { edge.label = e.target.value; render(); });
     document.getElementById('prop-cap').addEventListener('input', e => { edge.properties.capacity = parseFloat(e.target.value) || 0; });
@@ -8277,8 +8686,13 @@ function zoomAt(factor, mx, my) {
   applyViewport();
 }
 
-function fitToContent() {
-  const floorNodes = state.nodes.filter(n => n.floor === state.activeFloor);
+// nodeIds == null: fit celé aktivní patro (pôvodné správanie fitToContent).
+// nodeIds == pole: fit len na tieto uzly (napr. úsek okolo vybraných agentov
+// v "🧪 Replay CSV" — bez toho by KLT bedna pri 10% zoom na 194-uzlovej sieti
+// bola len ~1px a pohyb by nebol vidno).
+function fitToNodes(nodeIds) {
+  const idSet = nodeIds ? new Set(nodeIds) : null;
+  const floorNodes = state.nodes.filter(n => n.floor === state.activeFloor && (!idSet || idSet.has(n.id)));
   if (floorNodes.length === 0) {
     state.viewport = { x: 0, y: 0, zoom: 1 }; applyViewport(); return;
   }
@@ -8308,6 +8722,8 @@ function fitToContent() {
   state.viewport.y = 290 - cy * z;
   applyViewport();
 }
+
+function fitToContent() { fitToNodes(null); }
 
 function resetViewport() {
   state.viewport = { x: 0, y: 0, zoom: 1 };
@@ -8674,6 +9090,12 @@ document.getElementById('btn-telemetry-demo').addEventListener('click', toggleTe
 
 document.getElementById('btn-live-logs').addEventListener('click', toggleLiveLogsPanel);
 document.getElementById('btn-live-logs-movement').addEventListener('click', toggleLiveLogsMovement);
+document.getElementById('btn-replay').addEventListener('click', toggleReplayPanel);
+document.getElementById('replay-csv-input').addEventListener('change', e => {
+  const file = e.target.files && e.target.files[0];
+  if (file) handleReplayCsvFile(file);
+  e.target.value = ''; // umožní znovu naimportovať ten istý súbor
+});
 window.addEventListener('message', event => {
   if (event.source !== window || event.origin !== window.location.origin) return;
   if (event.data?.source !== 'sklc3-ext-bridge') return;
@@ -8717,7 +9139,7 @@ document.getElementById('btn-export-assignment').addEventListener('click', expor
 
 // Skrývání jednotlivých tlačítek spodního sim panelu (perzistováno v localStorage).
 const SIM_TABS_STORAGE_KEY = 'sklc3SimPanelHiddenTabs';
-const SIM_TAB_IDS = ['btn-simulate', 'btn-optimize', 'btn-telemetry-demo', 'btn-live-filter', 'btn-live-logs', 'btn-live-logs-movement', 'btn-kibana-view', 'btn-export-sim', 'btn-export-assignment'];
+const SIM_TAB_IDS = ['btn-simulate', 'btn-optimize', 'btn-telemetry-demo', 'btn-live-filter', 'btn-live-logs', 'btn-live-logs-movement', 'btn-kibana-view', 'btn-replay', 'btn-export-sim', 'btn-export-assignment'];
 function getHiddenSimTabs() {
   try { return new Set(JSON.parse(localStorage.getItem(SIM_TABS_STORAGE_KEY) || '[]')); } catch (e) { return new Set(); }
 }
@@ -10968,5 +11390,6 @@ window.addEventListener('keydown', e => {
 })();
 </script>
   <script type="module" src="live-events.mjs"></script>
+  <script type="module" src="kibana-csv-import.mjs"></script>
 </body>
 </html>

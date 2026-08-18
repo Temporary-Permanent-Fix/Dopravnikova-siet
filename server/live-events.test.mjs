@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeLiveEvent, passiveSegment, buildSnapshot, elasticTemplates } from '../src/live-events.mjs';
+import { normalizeLiveEvent, passiveSegment, buildSnapshot, elasticTemplates, parseRenderedMessage, demoCratesByEdgeAt, boxTrackerCratesByEdge } from '../src/live-events.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 const fixturesDir = join(import.meta.dirname, 'fixtures');
@@ -37,6 +37,51 @@ test('elasticTemplates lists exactly the three known message templates', () => {
     'Arm status changed ({Arms})',
     'Message received (messageId={Id}; clientId={ClientId}; topic={Topic};)'
   ]);
+});
+
+test('parseRenderedMessage: reconstructs "Box has been routed" from the real rendered message text', () => {
+  const parsed = parseRenderedMessage(realBoxRouted.message);
+  assert.deepEqual(parsed, {
+    messageTemplate: "Box has been routed (boxCode='{BoxCode}'; direction={DirectionTo}).",
+    messageParams: { BoxCode: '"80051959"', DirectionTo: '12' }
+  });
+});
+
+test('parseRenderedMessage: reconstructs "Arm status changed" from the real rendered message text', () => {
+  const parsed = parseRenderedMessage(realArmStatus.message);
+  assert.deepEqual(parsed, {
+    messageTemplate: 'Arm status changed ({Arms})',
+    messageParams: { Arms: '"0:Occupied,6:Open,9:Open,12:Occupied"' }
+  });
+});
+
+test('parseRenderedMessage: reconstructs "Message received" from the real rendered message text', () => {
+  const parsed = parseRenderedMessage(realMessageReceived.message);
+  assert.deepEqual(parsed, {
+    messageTemplate: 'Message received (messageId={Id}; clientId={ClientId}; topic={Topic};)',
+    messageParams: {
+      Id: parsed.messageParams.Id, // opaque UUID, just confirm it round-trips below
+      ClientId: '"OBIWAN-01"',
+      Topic: '"rur/plc/OBIWAN/occupation"'
+    }
+  });
+});
+
+test('parseRenderedMessage: unrecognized message text returns null', () => {
+  assert.equal(parseRenderedMessage('Begin processing request codes'), null);
+  assert.equal(parseRenderedMessage(''), null);
+  assert.equal(parseRenderedMessage(undefined), null);
+});
+
+test('parseRenderedMessage output round-trips through normalizeLiveEvent identically to the structured fixture', () => {
+  const { messageTemplate, messageParams } = parseRenderedMessage(realBoxRouted.message);
+  const reconstructedSource = {
+    '@timestamp': realBoxRouted['@timestamp'],
+    headers: realBoxRouted.headers,
+    messageTemplate,
+    messageParams
+  };
+  assert.deepEqual(normalizeLiveEvent(asHit(reconstructedSource)), normalizeLiveEvent(asHit(realBoxRouted)));
 });
 
 test('normalizeLiveEvent: real "Box has been routed" event (DS24S26)', () => {
@@ -254,4 +299,71 @@ test('buildSnapshot: caps boxes and unmappedEvents at the most recent 100 entrie
 
   assert.equal(snapshot.unmappedEvents.length, 100);
   assert.equal(snapshot.unmappedEvents[0].agent, 'DS24S26');
+});
+
+test('demoCratesByEdgeAt: places a crate on the edge matching its phase, with fractional progress', () => {
+  const crates = [{ boxCode: 'DEMO-1', edgeIds: ['e1', 'e2', 'e3'], offset: 0 }];
+
+  const byEdge = demoCratesByEdgeAt(crates, 1.5);
+
+  assert.deepEqual([...byEdge.keys()], ['e2']);
+  assert.deepEqual(byEdge.get('e2'), [{ boxCode: 'DEMO-1', progress: 0.5 }]);
+});
+
+test('demoCratesByEdgeAt: phase wraps around back to the first edge once it exceeds the chain length', () => {
+  const crates = [{ boxCode: 'DEMO-1', edgeIds: ['e1', 'e2', 'e3'], offset: 0 }];
+
+  const byEdge = demoCratesByEdgeAt(crates, 3.2); // 3.2 % 3 = 0.2 → back on e1
+
+  const [entry] = byEdge.get('e1');
+  assert.equal(entry.boxCode, 'DEMO-1');
+  assert.ok(Math.abs(entry.progress - 0.2) < 1e-9);
+});
+
+test('demoCratesByEdgeAt: offset spreads crates on the same chain across different edges, grouped per edge', () => {
+  const crates = [
+    { boxCode: 'DEMO-A', edgeIds: ['e1', 'e2', 'e3'], offset: 0 },
+    { boxCode: 'DEMO-B', edgeIds: ['e1', 'e2', 'e3'], offset: 0.5 }
+  ];
+
+  const byEdge = demoCratesByEdgeAt(crates, 0);
+
+  assert.deepEqual(byEdge.get('e1'), [{ boxCode: 'DEMO-A', progress: 0 }]);
+  assert.deepEqual(byEdge.get('e2'), [{ boxCode: 'DEMO-B', progress: 0.5 }]);
+});
+
+test('boxTrackerCratesByEdge: places a non-terminal box on the edge matching elapsed time', () => {
+  const entries = [['BOX-1', { edgeIds: ['e1', 'e2', 'e3'], terminal: false, legStartAt: 0 }]];
+
+  const { byEdge, expired } = boxTrackerCratesByEdge(entries, 1500, { crateMsPerEdge: 1000, stopMargin: 0.5 });
+
+  assert.deepEqual(expired, []);
+  assert.deepEqual(byEdge.get('e2'), [{ boxCode: 'BOX-1', progress: 0.5, waiting: false }]);
+});
+
+test('boxTrackerCratesByEdge: non-terminal box stops at stopMargin short of the end and is flagged waiting', () => {
+  const entries = [['BOX-1', { edgeIds: ['e1', 'e2', 'e3'], terminal: false, legStartAt: 0 }]];
+
+  // elapsedEdges = 3.0, cap = 3 - 0.5 = 2.5 → clamped, waiting once elapsed reaches cap.
+  const { byEdge } = boxTrackerCratesByEdge(entries, 3000, { crateMsPerEdge: 1000, stopMargin: 0.5 });
+
+  assert.deepEqual(byEdge.get('e3'), [{ boxCode: 'BOX-1', progress: 0.5, waiting: true }]);
+});
+
+test('boxTrackerCratesByEdge: terminal box still in flight is not capped by stopMargin and is never waiting', () => {
+  const entries = [['BOX-1', { edgeIds: ['e1', 'e2', 'e3'], terminal: true, legStartAt: 0 }]];
+
+  const { byEdge, expired } = boxTrackerCratesByEdge(entries, 2500, { crateMsPerEdge: 1000, stopMargin: 0.5 });
+
+  assert.deepEqual(expired, []);
+  assert.deepEqual(byEdge.get('e3'), [{ boxCode: 'BOX-1', progress: 0.5, waiting: false }]);
+});
+
+test('boxTrackerCratesByEdge: terminal box that fully reached the end is reported via expired, not placed on an edge', () => {
+  const entries = [['BOX-1', { edgeIds: ['e1', 'e2', 'e3'], terminal: true, legStartAt: 0 }]];
+
+  const { byEdge, expired } = boxTrackerCratesByEdge(entries, 3500, { crateMsPerEdge: 1000, stopMargin: 0.5 });
+
+  assert.deepEqual(expired, ['BOX-1']);
+  assert.equal(byEdge.size, 0);
 });

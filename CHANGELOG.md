@@ -2,6 +2,45 @@
 
 Formát vychází z [Keep a Changelog](https://keepachangelog.com/), verze podle [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH — pravidlo bumpu viz `AGENTS.md`).
 
+## [3.2.0] - 2026-08-18
+
+- Kliknutím na úsek dopravníka sa v paneli vlastností teraz zobrazí sekcia
+  „KLT na tomto úseku" — naživo zoznam boxCode/KLT, ktoré sa na danom
+  úseku práve nachádzajú, odvodený z rovnakej live-logs/replay/
+  telemetria-demo logiky, akú používa canvas na animáciu bední
+  (`computeCratesByEdge()` v `src/index.html`, delegujúce na nové čisté
+  funkcie `demoCratesByEdgeAt`/`boxTrackerCratesByEdge` v
+  `src/live-events.mjs`, obe pokryté testami v
+  `server/live-events.test.mjs`). Zoznam sa pri každom live pollu sám
+  obnoví (`refreshEdgeKltPanel()`), bez prepisovania celého panela — takže
+  rozpracovaná editácia labelu/kapacity úseku sa nepreruší.
+
+## [3.1.0] - 2026-08-12
+
+- Přidán panel `🧪 Replay CSV` — offline testovací/nácvičné prostředí pro
+  vizualizaci pohybu bez připojení na Kibanu. Operátor naimportuje CSV
+  export z Kibana Discoveru (tlačítko "Generate CSV", případně export do
+  Excelu), appka záznamy namapuje na stejný tvar, jaký běžně dostává ze
+  živého připojení (`src/kibana-csv-import.mjs`), a přehraje je na
+  simulovaných hodinách (play/pauza, rychlost 1×–300×, posuvník s hodinovým
+  ukazatelem), s filtrem podle agenta pro zúžení na konkrétní úsek mezi
+  čidly. Sdílí veškerou animační/mapovací logiku se „▶ Živý pohyb"
+  (`buildSnapshot`, `updateBoxTracker`, canvas glide) přes nový sdílený
+  `buildAndApplySnapshot()` a nový `state.simulation.mode = 'replay'`.
+- Přidáno `parseRenderedMessage()` do `src/live-events.mjs` — rekonstruuje
+  `messageTemplate`/`messageParams` zpětně z už vykresleného textu
+  `message` (pro CSV exporty, které neobsahují strukturovaná pole), tak aby
+  fungovala i offline cesta bez `messageParams.*` sloupců v exportu.
+- Opraveno: KLT bedna se v „🧪 Replay CSV" reálně hýbala (canvas animace
+  běžela správně), ale na výchozím zoomu fit-to-content (desítky uzlů na
+  obrazovce) byla jen pár pixelů velká a pohyb nebylo prakticky vidět. Import
+  CSV i každá změna výběru agentů teď plátno automaticky přiblíží přesně na
+  pasivní segment(y), kterými mohou bedny vybraných agentů projet
+  (`zoomReplayToSelection()`, stejná `passiveSegment()` logika jako
+  `buildSnapshot`) — místo generických sousedů v grafu, což by u agenta s
+  více vzdálenými větvemi (např. diverter s odbočkami) stále vyzoomovalo
+  příliš široko.
+
 ## [3.0.0] - 2026-08-12
 
 - Panel `📋 Live logs` teraz defaultne posiela do Kibany dopyt len na

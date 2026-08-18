@@ -76,3 +76,28 @@ pochopenie štruktúry správy a mapovania na `agent`/`direction`/`edgeId`.
   `Occupied`, `Open`.
 
 Pripomienka: nikdy neukladať API kľúč ani interné URL do repozitára.
+
+## Offline testovanie z CSV exportu ("🧪 Replay CSV")
+
+Panel `🧪 Replay CSV` (`src/index.html`, viď `toggleReplayPanel`/`renderReplayPanel`)
+prehráva pohyb bez pripojenia na Kibanu, z CSV exportu Discoveru (tlačidlo
+"Generate CSV", prípadne export do Excelu). Parsovanie a mapovanie riadku CSV
+na tvar záznamu, ktorý appka bežne dostáva zo živého pripojenia, robí
+`src/kibana-csv-import.mjs` (`parseKibanaCsv`).
+
+Kibana CSV export obsahuje presne tie stĺpce, ktoré má operátor pridané v
+Discover tabuľke — appka preto podporuje dve úrovne kvality dát:
+
+- **Odporúčané stĺpce pred exportom** (postačujú, appka si zvyšok domyslí):
+  čas (`@timestamp`), `message` a agent (`headers.x-AgentName`, prípadne
+  `agent`). Z `message` appka rekonštruuje `messageTemplate`/`messageParams`
+  rovnakou logikou ako vyššie uvedené tri šablóny (`parseRenderedMessage`
+  v `src/live-events.mjs`) — funguje to len pre presne tieto tri typy
+  udalostí, ostatné sa zobrazia ako `unknown-event` (viditeľné, nie zahodené).
+- **Voliteľné stĺpce pre vyššiu presnosť** (appka ich použije priamo, bez
+  domýšľania z textu): `messageTemplate`, `messageParams.BoxCode`,
+  `messageParams.DirectionTo`, `messageParams.Arms`, `messageParams.Id`,
+  `messageParams.ClientId`, `messageParams.Topic`.
+
+Delimiter (`,` alebo `;`, podľa regionálneho nastavenia Excelu) sa
+autodetekuje z hlavičky.
