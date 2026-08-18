@@ -1,4 +1,4 @@
-# Editor dopravníkové sítě
+# Live Dopravníky
 
 Desktopový nástroj (Electron) na editáciu layoutu dopravníkovej / triediacej
 siete — uzly a hrany naprieč podlažiami skladu, s optimalizáciou cez LP solver

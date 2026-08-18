@@ -2,6 +2,19 @@
 
 Formát vychází z [Keep a Changelog](https://keepachangelog.com/), verze podle [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH — pravidlo bumpu viz `AGENTS.md`).
 
+## [3.5.0] - 2026-08-18
+
+- Appka premenovaná na **Live Dopravníky** (predtým "Editor dopravníkové
+  sítě" / "Dopravníková sieť") — nový názov v titulku okna, hlavičke
+  editora, splash obrazovke, `package.json` `productName` (a teda aj v
+  názve `.exe` inštalátora) a v README súboroch. `appId`
+  (`cz.alza.dopravnikova-siet`) ostal nezmenený, aby si existujúce
+  inštalácie zachovali kontinuitu aktualizácie.
+- Splash obrazovka: hero ikonka teraz po kolapse siete uzlov zostáva
+  vycentrovaná (predtým odlietala doľava do malého slotu vedľa čísla
+  verzie — tento slot bol odstránený). Odstránený aj popisný odstavec
+  "Navrhuj uzly, propojuj je dopravníky…" pod hlavným nadpisom.
+
 ## [3.4.1] - 2026-08-18
 
 - Prekreslená úvodná (intro/splash) obrazovka (`#intro-overlay` v

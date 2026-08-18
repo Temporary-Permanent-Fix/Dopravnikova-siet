@@ -1,6 +1,6 @@
 # Lokálne spustenie mimo Codespace
 
-Návod na spustenie appky **Dopravníková sieť / SKLC3** na vlastnom počítači
+Návod na spustenie appky **Live Dopravníky / SKLC3** na vlastnom počítači
 (Windows/macOS/Linux), bez závislosti na GitHub Codespace.
 
 ## 0. Rýchly prehľad
