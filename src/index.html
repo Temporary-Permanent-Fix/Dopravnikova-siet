@@ -4303,8 +4303,6 @@ function toggleLiveLogsMovement() {
 // čidla, kým ju vizuál zahodí (výpadok dát / reálne zoslaná bedna / diera
 // v mapovaní) — inak by čakala navždy a hromadili by sa "duchovia".
 const BOX_WAIT_TIMEOUT_MS = 45000;
-// Bezpečný strop počtu súbežne sledovaných bedien (canvas nekreslí neobmedzene).
-const BOX_TRACKER_MAX = 40;
 
 // Sleduje totožnosť konkrétnej bedny (boxCode) naprieč viacerými udalosťami
 // z Kibany, aby vedela počkať na potvrdenie od ďalšieho čidla (nextAgent)
@@ -4334,10 +4332,6 @@ function updateBoxTracker(boxesAsc) {
   }
   for (const [boxCode, box] of state.boxTracker) {
     if (!box.terminal && (now - box.legStartAt) > BOX_WAIT_TIMEOUT_MS) state.boxTracker.delete(boxCode);
-  }
-  if (state.boxTracker.size > BOX_TRACKER_MAX) {
-    const sorted = [...state.boxTracker.entries()].sort((a, b) => b[1].legStartAt - a[1].legStartAt);
-    state.boxTracker = new Map(sorted.slice(0, BOX_TRACKER_MAX));
   }
 }
 

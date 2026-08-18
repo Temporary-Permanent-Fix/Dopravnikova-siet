@@ -2,6 +2,14 @@
 
 Formát vychází z [Keep a Changelog](https://keepachangelog.com/), verze podle [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH — pravidlo bumpu viz `AGENTS.md`).
 
+## [3.2.2] - 2026-08-18
+
+- Odstránený strop `BOX_TRACKER_MAX = 40` na počet súbežne sledovaných
+  bední (`updateBoxTracker` v `src/index.html`) — pri fyzicky plnom páse
+  appka doteraz vyhodila najstaršie bedny nad tento limit, hoci na páse
+  ešte boli. Live-logs/replay režim teraz sleduje a vykresľuje každú
+  bednu, ktorú Kibana hlási, bez ohľadu na ich počet.
+
 ## [3.2.1] - 2026-08-18
 
 - Opraveno: keď bolo na tom istom úseku naraz viac KLT (typicky viacero
