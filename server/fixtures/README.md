@@ -25,7 +25,7 @@ scenáre, ktoré v troch odovzdaných reálnych vzorkách chýbajú.
 
 | Súbor | Template | Agent | Poznámka |
 |---|---|---|---|
-| `mapped-arm-status.json` | `Arm status changed` | `DS02S04` | ramená `7`, `11`, `12` sú mapované na `e84`, `e83`, `e11` — pokrýva obsadenosť hrán (`occupied`) pre agenta, ktorý *je* v `src/sklc3-telemetry.json`; rameno `99` nie je mapované, takže sa pridá do `unmappedEvents` popri troch mapovaných |
+| `mapped-arm-status.json` | `Arm status changed` | `DS02S04` | ramená `7`, `11`, `12` sú mapované na `e452`, `e83`, `e11` — pokrýva obsadenosť hrán (`occupied`) pre agenta, ktorý *je* v `src/sklc3-telemetry.json`; rameno `99` nie je mapované, takže sa pridá do `unmappedEvents` popri troch mapovaných |
 | `unmapped-box-routed.json` | `Box has been routed` | `DS24S26` | `direction=250` neexistuje v mapovaní pre `DS24S26` (má iba `12`) → skončí v `unmappedEvents` |
 
 ## Passívne segmenty

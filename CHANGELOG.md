@@ -2,6 +2,25 @@
 
 Formát vychází z [Keep a Changelog](https://keepachangelog.com/), verze podle [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH — pravidlo bumpu viz `AGENTS.md`).
 
+## [3.4.0] - 2026-08-18
+
+- Nahradený `src/sklc3.json` aktuálnym layoutom (2026-08-10) s Kibana
+  smerovaním (`kibanaDirection`) vyplneným priamo na hranách — vrátane
+  všetkých piatich veľkých sorterov (`SL01AL18A`, `SL19AL38A`,
+  `SL17BL35B`, `SL01BL16B`, `SL40L57`), ktoré predtým nemali žiadne
+  smery. `src/sklc3-telemetry.json` a `data/sklc3-telemetry-mapping.md`
+  prepočítané a vygenerované rovnakou logikou ako existujúce „Export
+  Kibana směrů" v editore, aby zostali presne zosynchronizované.
+  Pokrytie stúplo zo 68 na 169 zmapovaných agent+smer kombinácií (0
+  nejednoznačných, oproti predtým 2 — `BPO01:6` a `C3PO:6` mali obe
+  svoje výstupné hrany na rovnakom smere, teraz majú vlastné).
+  Priamy dopad na predchádzajúci "vidím plný pás, ale živo len pár
+  KLT" problém — predtým nezmapované smery sa vôbec nepremietli do
+  žiadnej hrany a boxy z nich sa nikdy nezačali sledovať.
+  Tri hrany bez predtým nastaveného smeru boli v zdrojovom layoute
+  medzičasom prekreslené s novým ID (`e84→e452`, `e85→e454`,
+  `e86→e453`) — testy a fixture dokumentácia aktualizované.
+
 ## [3.3.0] - 2026-08-18
 
 - Nahradený pevný 45s timeout na vyraďovanie nepotvrdených bední novou

@@ -205,14 +205,14 @@ test('buildSnapshot: an unrecognized messageTemplate lands in unmappedEvents wit
 test('buildSnapshot: arm occupancy updates mapped edges and reports unmapped arms', () => {
   const snapshot = buildSnapshot([asHit(mappedArmStatus)], telemetry, layout, 60);
 
-  // DS02S04:7 -> e84 (Occupied), DS02S04:11 -> e83 (Open), DS02S04:12 -> e11 (Occupied)
-  assert.equal(snapshot.edgeMetrics.e84.occupied, true);
-  assert.equal(snapshot.edgeMetrics.e84.lastEventAt, '2026-07-15T08:13:05.500Z');
+  // DS02S04:7 -> e452 (Occupied), DS02S04:11 -> e83 (Open), DS02S04:12 -> e11 (Occupied)
+  assert.equal(snapshot.edgeMetrics.e452.occupied, true);
+  assert.equal(snapshot.edgeMetrics.e452.lastEventAt, '2026-07-15T08:13:05.500Z');
   assert.equal(snapshot.edgeMetrics.e83.occupied, false);
   assert.equal(snapshot.edgeMetrics.e11.occupied, true);
 
   // Arm status does not consume the passive-segment rate counter.
-  assert.equal(snapshot.edgeMetrics.e84.ratePerHour, 0);
+  assert.equal(snapshot.edgeMetrics.e452.ratePerHour, 0);
   assert.equal(snapshot.boxes.length, 0);
 
   // DS02S04:99 has no entry in src/sklc3-telemetry.json.
@@ -233,13 +233,31 @@ test('buildSnapshot: mapped arms update edges while unknown arms remain visible'
 });
 
 test('buildSnapshot: an ambiguous mapping is diagnosed and never animates either edge', () => {
-  const snapshot = buildSnapshot([asHit(ambiguousBoxRouted)], telemetry, layout, 60);
+  // Synthetic mini layout/telemetry — deliberately ambiguous, independent of
+  // whichever agent+direction the real src/sklc3-telemetry.json currently
+  // happens to leave unresolved (real-data ambiguities get fixed over time
+  // as the layout mapping is completed, as happened for both agents this
+  // fixture previously exercised).
+  const miniLayout = {
+    nodes: [
+      { id: 'nA', label: 'C3PO' },
+      { id: 'nB', label: 'TARGET1' },
+      { id: 'nC', label: 'TARGET2' }
+    ],
+    edges: [
+      { id: 'eTestA', from: 'nA', to: 'nB' },
+      { id: 'eTestB', from: 'nA', to: 'nC' }
+    ]
+  };
+  const miniTelemetry = { mappings: {}, ambiguousMappings: { 'C3PO:6': ['eTestA', 'eTestB'] } };
+
+  const snapshot = buildSnapshot([asHit(ambiguousBoxRouted)], miniTelemetry, miniLayout, 60);
 
   assert.equal(snapshot.boxes.length, 0);
-  assert.equal(snapshot.edgeMetrics.e40.ratePerHour, 0);
-  assert.equal(snapshot.edgeMetrics.e129.ratePerHour, 0);
+  assert.equal(snapshot.edgeMetrics.eTestA.ratePerHour, 0);
+  assert.equal(snapshot.edgeMetrics.eTestB.ratePerHour, 0);
   assert.deepEqual(snapshot.unmappedEvents, [
-    { agent: 'C3PO', direction: 6, kind: 'box-routed', reason: 'ambiguous-mapping', edgeIds: ['e40', 'e129'], template: undefined, observedAt: '2026-07-15T08:14:00.000Z' }
+    { agent: 'C3PO', direction: 6, kind: 'box-routed', reason: 'ambiguous-mapping', edgeIds: ['eTestA', 'eTestB'], template: undefined, observedAt: '2026-07-15T08:14:00.000Z' }
   ]);
 });
 

@@ -35,8 +35,8 @@ test('telemetry JSON exactly mirrors the filled Markdown mapping with explicit a
     grouped.set(row.key, values);
   }
 
-  assert.equal(rows.length, 72);
-  assert.equal(grouped.size, 70);
+  assert.equal(rows.length, 169);
+  assert.equal(grouped.size, 169);
 
   for (const row of rows) {
     const edge = edges.get(row.edgeId);
@@ -53,5 +53,5 @@ test('telemetry JSON exactly mirrors the filled Markdown mapping with explicit a
 
   assert.deepEqual(telemetry.mappings, expectedMappings);
   assert.deepEqual(telemetry.ambiguousMappings, expectedAmbiguous);
-  assert.equal(Object.keys(telemetry.mappings).length + Object.keys(telemetry.ambiguousMappings).length, 70);
+  assert.equal(Object.keys(telemetry.mappings).length + Object.keys(telemetry.ambiguousMappings).length, 169);
 });

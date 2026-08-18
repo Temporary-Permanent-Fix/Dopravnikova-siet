@@ -201,7 +201,7 @@
       "id": "n32",
       "type": "diverter",
       "x": -2870,
-      "y": -132.5,
+      "y": -130,
       "label": "DS12",
       "properties": {
         "width": 150,
@@ -912,500 +912,500 @@
       }
     },
     {
+      "floor": "f2",
       "id": "n253",
       "type": "sink",
       "x": -2370,
       "y": 110,
       "label": "L20b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n254",
       "type": "sink",
       "x": -2550,
       "y": 110,
       "label": "L21b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n255",
       "type": "sink",
       "x": -2730,
       "y": 110,
       "label": "L22b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n256",
       "type": "sink",
       "x": -2910,
       "y": 110,
       "label": "L23b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n257",
       "type": "sink",
       "x": -3090,
       "y": 110,
       "label": "L24b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n258",
       "type": "sink",
       "x": -3270,
       "y": 110,
       "label": "L25b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n259",
       "type": "sink",
       "x": -3450,
       "y": 110,
       "label": "L26b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n260",
       "type": "sink",
       "x": -3630,
       "y": 110,
       "label": "L27b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n261",
       "type": "sink",
       "x": -3810,
       "y": 110,
       "label": "L28b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n262",
       "type": "sink",
       "x": -3990,
       "y": 110,
       "label": "L29b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n263",
       "type": "sink",
       "x": -4170,
       "y": 110,
       "label": "L30b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n264",
       "type": "sink",
       "x": -4350,
       "y": 110,
       "label": "L31b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n265",
       "type": "sink",
       "x": -4530,
       "y": 110,
       "label": "L32b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n266",
       "type": "sink",
       "x": -4710,
       "y": 110,
       "label": "L33b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n267",
       "type": "sink",
       "x": -4890,
       "y": 110,
       "label": "L34b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n268",
       "type": "sink",
       "x": -5070,
       "y": 110,
       "label": "L35b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n285",
       "type": "sink",
       "x": -1830,
       "y": 110,
       "label": "L17b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n286",
       "type": "sink",
       "x": -2010,
       "y": 110,
       "label": "L18b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n287",
       "type": "sink",
       "x": -2190,
       "y": 110,
       "label": "L19b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n291",
       "type": "sink",
       "x": 1990,
       "y": 110,
       "label": "L01b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n292",
       "type": "sink",
       "x": 1810,
       "y": 110,
       "label": "L02b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n293",
       "type": "sink",
       "x": 1630,
       "y": 110,
       "label": "L03b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n294",
       "type": "sink",
       "x": 1450,
       "y": 110,
       "label": "L04b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n295",
       "type": "sink",
       "x": 1270,
       "y": 110,
       "label": "L05b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n296",
       "type": "sink",
       "x": 1090,
       "y": 110,
       "label": "L06b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n297",
       "type": "sink",
       "x": 910,
       "y": 110,
       "label": "L07b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n298",
       "type": "sink",
       "x": 730,
       "y": 110,
       "label": "L08b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n299",
       "type": "sink",
       "x": 550,
       "y": 110,
       "label": "L09b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n300",
       "type": "sink",
       "x": 370,
       "y": 110,
       "label": "L10b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n301",
       "type": "sink",
       "x": 190,
       "y": 110,
       "label": "L11b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n302",
       "type": "sink",
       "x": 10,
       "y": 110,
       "label": "L12b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n303",
       "type": "sink",
       "x": -170,
       "y": 110,
       "label": "L13b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n304",
       "type": "sink",
       "x": -350,
       "y": 110,
       "label": "L14b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n305",
       "type": "sink",
       "x": -530,
       "y": 110,
       "label": "L15b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n306",
       "type": "sink",
       "x": -710,
       "y": 110,
       "label": "L16b",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n323",
       "type": "junction",
       "x": -5470,
       "y": 250,
       "label": "Joiner / Y 3",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n326",
       "type": "junction",
       "x": -5470,
       "y": -470,
       "label": "Joiner / Y 4",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n327",
       "type": "junction",
       "x": -5070,
       "y": -230,
       "label": "Joiner / Y 5",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n330",
       "type": "junction",
       "x": -1530,
       "y": -230,
       "label": "JoinerSorter04",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n332",
       "type": "diverter",
       "x": -1170,
       "y": -230,
       "label": "YODA",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n333",
       "type": "junction",
       "x": -1350,
       "y": -30,
       "label": "JoinerSorter05",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n335",
       "type": "junction",
       "x": -1170,
       "y": -30,
       "label": "JoinerSorter06",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n340",
       "type": "junction",
       "x": -770,
       "y": -230,
       "label": "JoinerSorter07",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n343",
       "type": "junction",
       "x": 2430,
       "y": -30,
       "label": "JoinerSorter08",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n345",
       "type": "junction",
       "x": 2430,
       "y": 150,
       "label": "JoinerSorter12",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n346",
       "type": "diverter",
       "x": 2430,
       "y": -230,
       "label": "OBIWAN",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n350",
       "type": "junction",
       "x": 2430,
       "y": 330,
       "label": "JoinerSorter01",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n352",
       "type": "portal",
       "x": 2190,
       "y": 330,
       "label": "Prijezd z R2D2",
-      "floor": "f2",
       "properties": {
         "partnerId": "n130"
       }
     },
     {
+      "floor": "f2",
       "id": "n355",
       "type": "diverter",
       "x": -5470,
       "y": -830,
       "label": "LUKE",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n356",
       "type": "junction",
       "x": -5990,
       "y": -830,
       "label": "JoinerSorter10",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n360",
       "type": "diverter",
       "x": -5990,
       "y": -1210,
       "label": "BPO01",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n366",
       "type": "junction",
       "x": 2630,
       "y": -490,
       "label": "JoinerSorter11",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n368",
       "type": "sorter",
       "x": 730,
       "y": -1070,
       "label": "DSO01",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n370",
       "type": "station",
       "x": 350,
       "y": -1070,
       "label": "SO01",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n372",
       "type": "portal",
       "x": -1170,
       "y": -930,
       "label": "Prijezd z C3PO",
-      "floor": "f2",
       "properties": {
         "width": 145,
         "height": 55,
@@ -1413,294 +1413,294 @@
       }
     },
     {
+      "floor": "f2",
       "id": "n375",
       "type": "sorter",
       "x": -3450,
       "y": -1210,
       "label": "SL40L57",
-      "floor": "f2",
       "properties": {
         "width": 3260,
         "height": 60
       }
     },
     {
+      "floor": "f2",
       "id": "n378",
       "type": "sink",
       "x": -1890,
       "y": -1030,
       "label": "L40",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n379",
       "type": "sink",
       "x": -2070,
       "y": -1030,
       "label": "L41",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n380",
       "type": "sink",
       "x": -2250,
       "y": -1030,
       "label": "L42",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n381",
       "type": "sink",
       "x": -2430,
       "y": -1030,
       "label": "L43",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n382",
       "type": "sink",
       "x": -2610,
       "y": -1030,
       "label": "L44",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n383",
       "type": "sink",
       "x": -2790,
       "y": -1030,
       "label": "L45",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n384",
       "type": "sink",
       "x": -2970,
       "y": -1030,
       "label": "L46",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n385",
       "type": "sink",
       "x": -3150,
       "y": -1030,
       "label": "L47",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n394",
       "type": "sink",
       "x": -3330,
       "y": -1030,
       "label": "L48",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n395",
       "type": "sink",
       "x": -3510,
       "y": -1030,
       "label": "L49",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n396",
       "type": "sink",
       "x": -3690,
       "y": -1030,
       "label": "L50",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n397",
       "type": "sink",
       "x": -3870,
       "y": -1030,
       "label": "L51",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n398",
       "type": "sink",
       "x": -4050,
       "y": -1030,
       "label": "L52",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n399",
       "type": "sink",
       "x": -4230,
       "y": -1030,
       "label": "L53",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n400",
       "type": "sink",
       "x": -4410,
       "y": -1030,
       "label": "L54",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n401",
       "type": "sink",
       "x": -4590,
       "y": -1030,
       "label": "L55",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n402",
       "type": "sink",
       "x": -4770,
       "y": -1030,
       "label": "L56",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n403",
       "type": "sink",
       "x": -4950,
       "y": -1030,
       "label": "L57",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n414",
       "type": "diverter",
       "x": 3170,
       "y": -230,
       "label": "DARTHVADER",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n415",
       "type": "junction",
       "x": 3170,
       "y": -90,
       "label": "JoinerAS01",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n416",
       "type": "diverter",
       "x": 3530,
       "y": -90,
       "label": "ANAKIN",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n417",
       "type": "junction",
       "x": 3530,
       "y": -230,
       "label": "JoinerAS02",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n424",
       "type": "diverter",
       "x": 3910,
       "y": -90,
       "label": "SIDIOUS",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n426",
       "type": "junction",
       "x": 3910,
       "y": 90,
       "label": "JoinerAS03",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n430",
       "type": "junction",
       "x": 4610,
       "y": -610,
       "label": "JoinerAS06",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n431",
       "type": "junction",
       "x": 4330,
       "y": -790,
       "label": "JoinerAS04",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n432",
       "type": "diverter",
       "x": 4610,
       "y": -790,
       "label": "KYLOREN",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n436",
       "type": "diverter",
       "x": 4330,
       "y": -610,
       "label": "DOOKU",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n444",
       "type": "transfer_cell",
       "x": 4330,
       "y": -1090,
       "label": "AS pick tunel",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n446",
       "type": "transfer_cell",
       "x": 5490,
       "y": -790,
       "label": "AS TC prava cast",
-      "floor": "f2",
       "properties": {}
     },
     {
+      "floor": "f2",
       "id": "n448",
       "type": "transfer_cell",
       "x": 5211.25,
       "y": -710,
       "label": "AS TC lava cast",
-      "floor": "f2",
       "properties": {
         "width": 142.5,
         "height": 50
@@ -1713,7 +1713,9 @@
       "from": "n3",
       "to": "n6",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "6"
+      },
       "waypoints": [],
       "fromSide": "left",
       "fromOffset": 0.5,
@@ -1725,7 +1727,9 @@
       "from": "n6",
       "to": "n10",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "12"
+      },
       "waypoints": [],
       "fromSide": "left",
       "fromOffset": 0.5,
@@ -1749,7 +1753,9 @@
       "from": "n10",
       "to": "n13",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "6"
+      },
       "waypoints": [],
       "fromSide": "left",
       "fromOffset": 0.5,
@@ -1761,7 +1767,9 @@
       "from": "n13",
       "to": "n16",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "12"
+      },
       "waypoints": [],
       "fromSide": "left",
       "fromOffset": 0.5,
@@ -1773,7 +1781,9 @@
       "from": "n16",
       "to": "n20",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "6"
+      },
       "waypoints": [],
       "fromSide": "left",
       "fromOffset": 0.5,
@@ -1785,7 +1795,9 @@
       "from": "n20",
       "to": "n24",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "12"
+      },
       "waypoints": [],
       "fromSide": "left",
       "fromOffset": 0.5,
@@ -1797,7 +1809,9 @@
       "from": "n24",
       "to": "n32",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "6"
+      },
       "waypoints": [],
       "fromSide": "left",
       "fromOffset": 0.5,
@@ -1809,7 +1823,9 @@
       "from": "n32",
       "to": "n33",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "12"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.5,
@@ -1821,7 +1837,9 @@
       "from": "n33",
       "to": "n37",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "12"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.5,
@@ -1833,7 +1851,9 @@
       "from": "n37",
       "to": "n39",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "9"
+      },
       "waypoints": [],
       "fromSide": "right",
       "fromOffset": 0.5,
@@ -1857,7 +1877,9 @@
       "from": "n41",
       "to": "n43",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "7"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.5,
@@ -1869,7 +1891,9 @@
       "from": "n41",
       "to": "n45",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "6"
+      },
       "waypoints": [],
       "fromSide": "right",
       "fromOffset": 0.5,
@@ -1881,7 +1905,9 @@
       "from": "n45",
       "to": "n50",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "12"
+      },
       "waypoints": [],
       "fromSide": "right",
       "fromOffset": 0.5,
@@ -1893,7 +1919,9 @@
       "from": "n50",
       "to": "n54",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "6"
+      },
       "waypoints": [],
       "fromSide": "right",
       "fromOffset": 0.5,
@@ -1905,7 +1933,9 @@
       "from": "n54",
       "to": "n57",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "12"
+      },
       "waypoints": [],
       "fromSide": "right",
       "fromOffset": 0.5,
@@ -1917,7 +1947,9 @@
       "from": "n57",
       "to": "n59",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "12"
+      },
       "waypoints": [],
       "fromSide": "right",
       "fromOffset": 0.5,
@@ -1929,7 +1961,9 @@
       "from": "n59",
       "to": "n61",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "6"
+      },
       "waypoints": [],
       "fromSide": "right",
       "fromOffset": 0.5,
@@ -1941,7 +1975,9 @@
       "from": "n61",
       "to": "n65",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "12"
+      },
       "waypoints": [],
       "fromSide": "right",
       "fromOffset": 0.5,
@@ -1953,7 +1989,9 @@
       "from": "n10",
       "to": "n72",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "11"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.5,
@@ -1965,7 +2003,9 @@
       "from": "n13",
       "to": "n15",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "11"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.5,
@@ -1977,7 +2017,9 @@
       "from": "n16",
       "to": "n19",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "7"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.5,
@@ -1989,7 +2031,9 @@
       "from": "n16",
       "to": "n18",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "11"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.5,
@@ -2001,7 +2045,9 @@
       "from": "n20",
       "to": "n21",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "7"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.5,
@@ -2013,7 +2059,9 @@
       "from": "n20",
       "to": "n22",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "11"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.5,
@@ -2025,47 +2073,13 @@
       "from": "n6",
       "to": "n9",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "11"
+      },
       "waypoints": [],
       "fromSide": "bottom",
-      "fromOffset": 0.5,
+      "fromOffset": 0.1,
       "toSide": "right",
-      "toOffset": 0.5
-    },
-    {
-      "id": "e84",
-      "from": "n6",
-      "to": "n8",
-      "label": "",
-      "properties": {},
-      "waypoints": [],
-      "fromSide": "bottom",
-      "fromOffset": 0.5,
-      "toSide": "left",
-      "toOffset": 0.5
-    },
-    {
-      "id": "e85",
-      "from": "n3",
-      "to": "n5",
-      "label": "",
-      "properties": {},
-      "waypoints": [],
-      "fromSide": "top",
-      "fromOffset": 0.5,
-      "toSide": "right",
-      "toOffset": 0.5
-    },
-    {
-      "id": "e86",
-      "from": "n3",
-      "to": "n4",
-      "label": "",
-      "properties": {},
-      "waypoints": [],
-      "fromSide": "top",
-      "fromOffset": 0.5,
-      "toSide": "left",
       "toOffset": 0.5
     },
     {
@@ -2073,7 +2087,9 @@
       "from": "n24",
       "to": "n25",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "11"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.5,
@@ -2085,7 +2101,9 @@
       "from": "n32",
       "to": "n29",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "7"
+      },
       "waypoints": [],
       "fromSide": "left",
       "fromOffset": 0.5,
@@ -2097,7 +2115,9 @@
       "from": "n33",
       "to": "n36",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "11"
+      },
       "waypoints": [],
       "fromSide": "left",
       "fromOffset": 0.5,
@@ -2109,7 +2129,9 @@
       "from": "n45",
       "to": "n48",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "7"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.5,
@@ -2121,7 +2143,9 @@
       "from": "n45",
       "to": "n49",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "11"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.5,
@@ -2133,7 +2157,9 @@
       "from": "n50",
       "to": "n52",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "11"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.5,
@@ -2145,7 +2171,9 @@
       "from": "n50",
       "to": "n53",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "7"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.5,
@@ -2157,7 +2185,9 @@
       "from": "n65",
       "to": "n97",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "6"
+      },
       "waypoints": [],
       "fromSide": "right",
       "fromOffset": 0.5,
@@ -2169,7 +2199,9 @@
       "from": "n97",
       "to": "n98",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "12"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.5,
@@ -2181,7 +2213,9 @@
       "from": "n98",
       "to": "n99",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "12"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.5,
@@ -2193,7 +2227,9 @@
       "from": "n99",
       "to": "n2",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "9"
+      },
       "waypoints": [],
       "fromSide": "left",
       "fromOffset": 0.5,
@@ -2205,7 +2241,9 @@
       "from": "n1",
       "to": "n2",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "9"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.5,
@@ -2217,7 +2255,9 @@
       "from": "n54",
       "to": "n108",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "7"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.5,
@@ -2229,7 +2269,9 @@
       "from": "n57",
       "to": "n110",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "11"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.5,
@@ -2241,7 +2283,9 @@
       "from": "n59",
       "to": "n112",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "11"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.5,
@@ -2253,7 +2297,9 @@
       "from": "n59",
       "to": "n114",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "7"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.5,
@@ -2265,7 +2311,9 @@
       "from": "n61",
       "to": "n116",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "7"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.5,
@@ -2277,7 +2325,9 @@
       "from": "n61",
       "to": "n117",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "11"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.5,
@@ -2289,7 +2339,9 @@
       "from": "n65",
       "to": "n120",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "11"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.5,
@@ -2301,7 +2353,9 @@
       "from": "n97",
       "to": "n122",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "7"
+      },
       "waypoints": [],
       "fromSide": "right",
       "fromOffset": 0.5,
@@ -2313,7 +2367,9 @@
       "from": "n98",
       "to": "n124",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "7"
+      },
       "waypoints": [],
       "fromSide": "right",
       "fromOffset": 0.5,
@@ -2325,7 +2381,9 @@
       "from": "n126",
       "to": "n39",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "9"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.5,
@@ -2337,7 +2395,9 @@
       "from": "n37",
       "to": "n128",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "6"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.5,
@@ -2349,7 +2409,9 @@
       "from": "n99",
       "to": "n130",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "6"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.5,
@@ -2361,7 +2423,9 @@
       "from": "n1",
       "to": "n132",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "6"
+      },
       "waypoints": [],
       "fromSide": "left",
       "fromOffset": 0.5,
@@ -2373,7 +2437,9 @@
       "from": "n126",
       "to": "n134",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "3"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.5,
@@ -2385,7 +2451,9 @@
       "from": "n136",
       "to": "n170",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "17"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.05828220858895705,
@@ -2397,7 +2465,9 @@
       "from": "n136",
       "to": "n169",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "16"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.11349693251533742,
@@ -2409,7 +2479,9 @@
       "from": "n136",
       "to": "n168",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "15"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.1687116564417178,
@@ -2421,7 +2493,9 @@
       "from": "n136",
       "to": "n167",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "14"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.22392638036809817,
@@ -2433,7 +2507,9 @@
       "from": "n136",
       "to": "n166",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "13"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.2791411042944785,
@@ -2445,7 +2521,9 @@
       "from": "n136",
       "to": "n165",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "12"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.3343558282208589,
@@ -2457,7 +2535,9 @@
       "from": "n136",
       "to": "n164",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "11"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.3895705521472393,
@@ -2469,7 +2549,9 @@
       "from": "n136",
       "to": "n152",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "10"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.4447852760736196,
@@ -2481,7 +2563,9 @@
       "from": "n136",
       "to": "n151",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "9"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.5,
@@ -2493,7 +2577,9 @@
       "from": "n136",
       "to": "n150",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "8"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.5552147239263804,
@@ -2505,7 +2591,9 @@
       "from": "n136",
       "to": "n149",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "7"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.6104294478527608,
@@ -2517,7 +2605,9 @@
       "from": "n136",
       "to": "n143",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "6"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.6656441717791411,
@@ -2529,7 +2619,9 @@
       "from": "n136",
       "to": "n142",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "5"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.7208588957055214,
@@ -2541,7 +2633,9 @@
       "from": "n136",
       "to": "n141",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "4"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.7760736196319018,
@@ -2553,7 +2647,9 @@
       "from": "n136",
       "to": "n140",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "3"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.8312883435582822,
@@ -2565,7 +2661,9 @@
       "from": "n136",
       "to": "n139",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "2"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.8865030674846626,
@@ -2577,7 +2675,9 @@
       "from": "n136",
       "to": "n137",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "1"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.941717791411043,
@@ -2589,7 +2689,9 @@
       "from": "n136",
       "to": "n189",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "41"
+      },
       "waypoints": [],
       "fromSide": "left",
       "fromOffset": 0.5,
@@ -2601,7 +2703,9 @@
       "from": "n189",
       "to": "n227",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "38"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.034759358288770054,
@@ -2613,7 +2717,9 @@
       "from": "n189",
       "to": "n226",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "37"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.08288770053475936,
@@ -2625,7 +2731,9 @@
       "from": "n189",
       "to": "n225",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "36"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.13101604278074866,
@@ -2637,7 +2745,9 @@
       "from": "n189",
       "to": "n206",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "35"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.17914438502673796,
@@ -2649,7 +2759,9 @@
       "from": "n189",
       "to": "n205",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "34"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.22727272727272727,
@@ -2661,7 +2773,9 @@
       "from": "n189",
       "to": "n204",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "33"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.27540106951871657,
@@ -2673,7 +2787,9 @@
       "from": "n189",
       "to": "n203",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "32"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.3235294117647059,
@@ -2685,7 +2801,9 @@
       "from": "n189",
       "to": "n202",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "31"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.3716577540106952,
@@ -2697,7 +2815,9 @@
       "from": "n189",
       "to": "n201",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "30"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.4197860962566845,
@@ -2709,7 +2829,9 @@
       "from": "n189",
       "to": "n200",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "29"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.4679144385026738,
@@ -2721,7 +2843,9 @@
       "from": "n189",
       "to": "n199",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "28"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.516042780748663,
@@ -2733,7 +2857,9 @@
       "from": "n189",
       "to": "n198",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "27"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.5641711229946524,
@@ -2745,7 +2871,9 @@
       "from": "n189",
       "to": "n197",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "26"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.6122994652406417,
@@ -2757,7 +2885,9 @@
       "from": "n189",
       "to": "n196",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "25"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.660427807486631,
@@ -2769,7 +2899,9 @@
       "from": "n189",
       "to": "n195",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "24"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.7085561497326203,
@@ -2781,7 +2913,9 @@
       "from": "n189",
       "to": "n194",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "23"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.7566844919786097,
@@ -2793,7 +2927,9 @@
       "from": "n189",
       "to": "n193",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "22"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.8048128342245989,
@@ -2805,7 +2941,9 @@
       "from": "n189",
       "to": "n192",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "21"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.8529411764705882,
@@ -2817,7 +2955,9 @@
       "from": "n189",
       "to": "n191",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "20"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.9010695187165776,
@@ -2829,7 +2969,9 @@
       "from": "n189",
       "to": "n190",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "19"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.9491978609625669,
@@ -2841,7 +2983,9 @@
       "from": "n248",
       "to": "n268",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "35"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.034759358288770054,
@@ -2853,7 +2997,9 @@
       "from": "n248",
       "to": "n267",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "34"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.08288770053475936,
@@ -2865,7 +3011,9 @@
       "from": "n248",
       "to": "n266",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "33"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.13101604278074866,
@@ -2877,7 +3025,9 @@
       "from": "n248",
       "to": "n265",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "32"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.17914438502673796,
@@ -2889,7 +3039,9 @@
       "from": "n248",
       "to": "n264",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "31"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.22727272727272727,
@@ -2901,7 +3053,9 @@
       "from": "n248",
       "to": "n263",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "30"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.27540106951871657,
@@ -2913,7 +3067,9 @@
       "from": "n248",
       "to": "n262",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "29"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.3235294117647059,
@@ -2925,7 +3081,9 @@
       "from": "n248",
       "to": "n261",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "28"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.3716577540106952,
@@ -2937,7 +3095,9 @@
       "from": "n248",
       "to": "n260",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "27"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.4197860962566845,
@@ -2949,7 +3109,9 @@
       "from": "n248",
       "to": "n259",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "26"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.4679144385026738,
@@ -2961,7 +3123,9 @@
       "from": "n248",
       "to": "n258",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "25"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.516042780748663,
@@ -2973,7 +3137,9 @@
       "from": "n248",
       "to": "n257",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "24"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.5641711229946524,
@@ -2985,7 +3151,9 @@
       "from": "n248",
       "to": "n256",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "23"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.6122994652406417,
@@ -2997,7 +3165,9 @@
       "from": "n248",
       "to": "n255",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "22"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.660427807486631,
@@ -3009,7 +3179,9 @@
       "from": "n248",
       "to": "n254",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "21"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.7085561497326203,
@@ -3021,7 +3193,9 @@
       "from": "n248",
       "to": "n253",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "20"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.7566844919786097,
@@ -3033,7 +3207,9 @@
       "from": "n248",
       "to": "n287",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "19"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.8048128342245989,
@@ -3045,7 +3221,9 @@
       "from": "n248",
       "to": "n286",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "18"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.8529411764705882,
@@ -3057,7 +3235,9 @@
       "from": "n248",
       "to": "n285",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "16"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.9010695187165776,
@@ -3069,7 +3249,9 @@
       "from": "n249",
       "to": "n291",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "1"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.941717791411043,
@@ -3081,7 +3263,9 @@
       "from": "n249",
       "to": "n292",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "2"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.8865030674846626,
@@ -3093,7 +3277,9 @@
       "from": "n249",
       "to": "n293",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "3"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.8312883435582822,
@@ -3105,7 +3291,9 @@
       "from": "n249",
       "to": "n294",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "4"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.7760736196319018,
@@ -3117,7 +3305,9 @@
       "from": "n249",
       "to": "n295",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "5"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.7208588957055214,
@@ -3129,7 +3319,9 @@
       "from": "n249",
       "to": "n296",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "6"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.6656441717791411,
@@ -3141,7 +3333,9 @@
       "from": "n249",
       "to": "n297",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "7"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.6104294478527608,
@@ -3153,7 +3347,9 @@
       "from": "n249",
       "to": "n298",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "8"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.5552147239263804,
@@ -3165,7 +3361,9 @@
       "from": "n249",
       "to": "n299",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "9"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.5,
@@ -3177,7 +3375,9 @@
       "from": "n249",
       "to": "n300",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "10"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.4447852760736196,
@@ -3189,7 +3389,9 @@
       "from": "n249",
       "to": "n301",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "11"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.3895705521472393,
@@ -3201,7 +3403,9 @@
       "from": "n249",
       "to": "n302",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "12"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.3343558282208589,
@@ -3213,7 +3417,9 @@
       "from": "n249",
       "to": "n303",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "13"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.2791411042944785,
@@ -3225,7 +3431,9 @@
       "from": "n249",
       "to": "n304",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "14"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.22392638036809817,
@@ -3237,7 +3445,9 @@
       "from": "n249",
       "to": "n305",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "15"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.1687116564417178,
@@ -3249,7 +3459,9 @@
       "from": "n249",
       "to": "n306",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "16"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.11349693251533742,
@@ -3261,7 +3473,9 @@
       "from": "n189",
       "to": "n323",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "42"
+      },
       "waypoints": [],
       "fromSide": "left",
       "fromOffset": 0.5,
@@ -3321,7 +3535,9 @@
       "from": "n248",
       "to": "n333",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "40"
+      },
       "waypoints": [],
       "fromSide": "right",
       "fromOffset": 0.5,
@@ -3357,7 +3573,9 @@
       "from": "n332",
       "to": "n335",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "9"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.5,
@@ -3393,7 +3611,9 @@
       "from": "n332",
       "to": "n340",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "6"
+      },
       "waypoints": [],
       "fromSide": "right",
       "fromOffset": 0.5,
@@ -3405,7 +3625,9 @@
       "from": "n249",
       "to": "n343",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "38"
+      },
       "waypoints": [],
       "fromSide": "right",
       "fromOffset": 0.5,
@@ -3429,7 +3651,9 @@
       "from": "n346",
       "to": "n343",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "9"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.5,
@@ -3501,7 +3725,9 @@
       "from": "n355",
       "to": "n326",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "6"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.5,
@@ -3513,7 +3739,9 @@
       "from": "n360",
       "to": "n356",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "12"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.5,
@@ -3525,7 +3753,9 @@
       "from": "n360",
       "to": "n326",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "9"
+      },
       "waypoints": [],
       "fromSide": "right",
       "fromOffset": 0.5,
@@ -3537,7 +3767,9 @@
       "from": "n355",
       "to": "n356",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "9"
+      },
       "waypoints": [],
       "fromSide": "left",
       "fromOffset": 0.5,
@@ -3549,7 +3781,9 @@
       "from": "n346",
       "to": "n366",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "6"
+      },
       "waypoints": [],
       "fromSide": "right",
       "fromOffset": 0.5,
@@ -3573,7 +3807,9 @@
       "from": "n368",
       "to": "n370",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "6"
+      },
       "waypoints": [],
       "fromSide": "left",
       "fromOffset": 0.5,
@@ -3597,7 +3833,9 @@
       "from": "n368",
       "to": "n375",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "9"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.5,
@@ -3609,7 +3847,9 @@
       "from": "n375",
       "to": "n355",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "58"
+      },
       "waypoints": [],
       "fromSide": "left",
       "fromOffset": 0.5,
@@ -3621,7 +3861,9 @@
       "from": "n375",
       "to": "n378",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "40"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.9785276073619632,
@@ -3633,7 +3875,9 @@
       "from": "n375",
       "to": "n379",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "41"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.9233128834355828,
@@ -3645,7 +3889,9 @@
       "from": "n375",
       "to": "n380",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "42"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.8680981595092024,
@@ -3657,7 +3903,9 @@
       "from": "n375",
       "to": "n381",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "43"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.8128834355828221,
@@ -3669,7 +3917,9 @@
       "from": "n375",
       "to": "n382",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "44"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.7576687116564417,
@@ -3681,7 +3931,9 @@
       "from": "n375",
       "to": "n383",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "45"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.7024539877300614,
@@ -3693,7 +3945,9 @@
       "from": "n375",
       "to": "n384",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "46"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.647239263803681,
@@ -3705,7 +3959,9 @@
       "from": "n375",
       "to": "n385",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "47"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.5920245398773006,
@@ -3717,7 +3973,9 @@
       "from": "n375",
       "to": "n394",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "48"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.5368098159509203,
@@ -3729,7 +3987,9 @@
       "from": "n375",
       "to": "n395",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "49"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.4815950920245399,
@@ -3741,7 +4001,9 @@
       "from": "n375",
       "to": "n396",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "50"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.4263803680981595,
@@ -3753,7 +4015,9 @@
       "from": "n375",
       "to": "n397",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "51"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.37116564417177916,
@@ -3765,7 +4029,9 @@
       "from": "n375",
       "to": "n398",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "52"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.3159509202453988,
@@ -3777,7 +4043,9 @@
       "from": "n375",
       "to": "n399",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "53"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.2607361963190184,
@@ -3789,7 +4057,9 @@
       "from": "n375",
       "to": "n400",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "54"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.20552147239263804,
@@ -3801,7 +4071,9 @@
       "from": "n375",
       "to": "n401",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "55"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.15030674846625766,
@@ -3813,7 +4085,9 @@
       "from": "n375",
       "to": "n402",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "56"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.0950920245398773,
@@ -3825,7 +4099,9 @@
       "from": "n375",
       "to": "n403",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "57"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.03987730061349693,
@@ -3837,7 +4113,9 @@
       "from": "n414",
       "to": "n366",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "12"
+      },
       "waypoints": [],
       "fromSide": "left",
       "fromOffset": 0.5,
@@ -3861,7 +4139,9 @@
       "from": "n414",
       "to": "n415",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "9"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.5,
@@ -3873,7 +4153,9 @@
       "from": "n416",
       "to": "n415",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "6"
+      },
       "waypoints": [],
       "fromSide": "left",
       "fromOffset": 0.5,
@@ -3897,7 +4179,9 @@
       "from": "n416",
       "to": "n417",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "9"
+      },
       "waypoints": [],
       "fromSide": "top",
       "fromOffset": 0.5,
@@ -3909,7 +4193,9 @@
       "from": "n424",
       "to": "n416",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "12"
+      },
       "waypoints": [],
       "fromSide": "left",
       "fromOffset": 0.5,
@@ -3921,7 +4207,9 @@
       "from": "n424",
       "to": "n426",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "9"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.5,
@@ -3945,7 +4233,9 @@
       "from": "n432",
       "to": "n431",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "9"
+      },
       "waypoints": [],
       "fromSide": "left",
       "fromOffset": 0.5,
@@ -3957,7 +4247,9 @@
       "from": "n436",
       "to": "n417",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "6"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.5,
@@ -4030,7 +4322,9 @@
       "from": "n436",
       "to": "n430",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "9"
+      },
       "waypoints": [],
       "fromSide": "right",
       "fromOffset": 0.5,
@@ -4042,11 +4336,55 @@
       "from": "n432",
       "to": "n430",
       "label": "",
-      "properties": {},
+      "properties": {
+        "kibanaDirection": "6"
+      },
       "waypoints": [],
       "fromSide": "bottom",
       "fromOffset": 0.5,
       "toSide": "top",
+      "toOffset": 0.5
+    },
+    {
+      "id": "e452",
+      "from": "n6",
+      "to": "n8",
+      "label": "",
+      "properties": {
+        "kibanaDirection": "7"
+      },
+      "waypoints": [],
+      "fromSide": "bottom",
+      "fromOffset": 0.9,
+      "toSide": "left",
+      "toOffset": 0.5
+    },
+    {
+      "id": "e453",
+      "from": "n3",
+      "to": "n4",
+      "label": "",
+      "properties": {
+        "kibanaDirection": "11"
+      },
+      "waypoints": [],
+      "fromSide": "top",
+      "fromOffset": 0.9,
+      "toSide": "left",
+      "toOffset": 0.5
+    },
+    {
+      "id": "e454",
+      "from": "n3",
+      "to": "n5",
+      "label": "",
+      "properties": {
+        "kibanaDirection": "7"
+      },
+      "waypoints": [],
+      "fromSide": "top",
+      "fromOffset": 0.1,
+      "toSide": "right",
       "toOffset": 0.5
     }
   ],
