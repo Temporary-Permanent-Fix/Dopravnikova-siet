@@ -2,6 +2,18 @@
 
 Formát vychází z [Keep a Changelog](https://keepachangelog.com/), verze podle [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH — pravidlo bumpu viz `AGENTS.md`).
 
+## [3.3.0] - 2026-08-18
+
+- Nahradený pevný 45s timeout na vyraďovanie nepotvrdených bední novou
+  logikou založenou na fyzickom poradí ("vláčik" od čidla k čidlu):
+  `advanceBoxTracker()` (`src/live-events.mjs`) si všíma, že na pasívnom
+  úseku sa bedny nemôžu predbehnúť — ak mladšia bedna na tom istom
+  úseku dostane potvrdenie z ďalšieho čidla skôr než staršia, staršia
+  evidentne z pásu vypadla inak (nie je len pomalá) a vyradí sa hneď.
+  Pôvodný časový limit ostáva len ako veľkorysá (10 min) posledná
+  poistka pre osamotenú bednu bez mladšieho súrodenca na porovnanie.
+  Pokrytá testami v `server/live-events.test.mjs`.
+
 ## [3.2.2] - 2026-08-18
 
 - Odstránený strop `BOX_TRACKER_MAX = 40` na počet súbežne sledovaných

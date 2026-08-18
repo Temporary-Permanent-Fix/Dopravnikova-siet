@@ -124,6 +124,69 @@ export function describeSegmentEnd(edgeIds, layout, telemetryAgents) {
   return { nextAgent, terminal: !nextAgent };
 }
 
+// Two boxes are travelling the same "train" (competing for the same
+// confirmation) only when they're on the literal same passive-segment chain
+// — same origin sensor+direction, same destination sensor.
+function trainKey(edgeIds) {
+  return edgeIds.join('>');
+}
+
+// Advances the live box tracker by one batch of new (ascending-time) events.
+// Replaces a fixed wait-timeout guess with physical FIFO reasoning: boxes
+// can't overtake each other on a passive conveyor segment, so once a box is
+// confirmed to have left a segment (a newer event shows it now travelling
+// elsewhere), any OTHER box that entered that same segment earlier but is
+// still parked there didn't just get slow — it left the belt some other way
+// without ever reaching the expected sensor, and is evicted as lost.
+// `ghostTimeoutMs` is only a last-resort backstop for a box with no later
+// sibling on its segment to ever trigger that comparison (e.g. a lone box on
+// a rarely-used segment) — it is not the primary detection mechanism.
+// Pure function: takes/returns tracker state, no globals, no Date.now().
+export function advanceBoxTracker(trackerEntries, boxesAsc, nowMs, ghostTimeoutMs) {
+  const tracker = new Map(trackerEntries);
+  const evicted = new Set();
+
+  for (const box of boxesAsc) {
+    if (!box || !box.boxCode || !Array.isArray(box.edgeIds) || !box.edgeIds.length) continue;
+    const existing = tracker.get(box.boxCode);
+    if (existing && box.observedAt && existing.observedAt === box.observedAt) continue;
+
+    if (existing && existing.observedAt) {
+      const oldKey = trainKey(existing.edgeIds);
+      const newKey = trainKey(box.edgeIds);
+      if (newKey !== oldKey) {
+        // This box just proved it successfully traversed oldKey — anyone
+        // else still parked there who entered before it never made it.
+        const existingTime = Date.parse(existing.observedAt);
+        for (const [otherCode, other] of tracker) {
+          if (otherCode === box.boxCode || !other.observedAt) continue;
+          if (trainKey(other.edgeIds) === oldKey && Date.parse(other.observedAt) < existingTime) {
+            tracker.delete(otherCode);
+            evicted.add(otherCode);
+          }
+        }
+      }
+    }
+
+    tracker.set(box.boxCode, {
+      edgeIds: box.edgeIds,
+      nextAgent: box.nextAgent || null,
+      terminal: !!box.terminal,
+      observedAt: box.observedAt || null,
+      legStartAt: nowMs
+    });
+  }
+
+  for (const [boxCode, box] of tracker) {
+    if (!box.terminal && (nowMs - box.legStartAt) > ghostTimeoutMs) {
+      tracker.delete(boxCode);
+      evicted.add(boxCode);
+    }
+  }
+
+  return { tracker, evicted: [...evicted] };
+}
+
 // Which edge of a telemetry-demo passive segment currently carries each demo
 // KLT, at a given point in the demo's looping phase cycle. Shared between the
 // canvas draw loop and the edge inspector panel (src/index.html) so they never
@@ -248,4 +311,5 @@ if (typeof window !== 'undefined') {
   window.passiveSegment = passiveSegment;
   window.demoCratesByEdgeAt = demoCratesByEdgeAt;
   window.boxTrackerCratesByEdge = boxTrackerCratesByEdge;
+  window.advanceBoxTracker = advanceBoxTracker;
 }

@@ -4299,40 +4299,24 @@ function toggleLiveLogsMovement() {
   if (state.liveLogsRecords.size) applyLiveLogsMovement([...state.liveLogsRecords.values()]);
 }
 
-// Bedna zostane "vo vzduchu" najviac 45s bez potvrdenia od nasledujúceho
-// čidla, kým ju vizuál zahodí (výpadok dát / reálne zoslaná bedna / diera
-// v mapovaní) — inak by čakala navždy a hromadili by sa "duchovia".
-const BOX_WAIT_TIMEOUT_MS = 45000;
+// Posledná poistka pre bednu, ktorá nikdy nedostane "mladšieho súrodenca" na
+// tom istom úseku (napr. osamotená bedna na málo vyťaženom úseku) — bez neho
+// by advanceBoxTracker() nemal oproti čomu odhaliť, že vypadla z pásu, a
+// čakala by navždy. Zámerne veľkorysé (nie ladiaci parameter pre bežný
+// provoz) — hlavný mechanizmus je poradie na "vláčiku" nižšie, nie čas.
+const BOX_GHOST_TIMEOUT_MS = 10 * 60 * 1000;
 
 // Sleduje totožnosť konkrétnej bedny (boxCode) naprieč viacerými udalosťami
 // z Kibany, aby vedela počkať na potvrdenie od ďalšieho čidla (nextAgent)
 // namiesto prepočítavania animácie odznova pri každom polle. Volané len pre
 // reálne live režimy (applySnapshotToSimulation), nie pre "telemetria demo".
+// Poradová logika (kto koho na pasívnom úseku "predbehol" bez potvrdenia →
+// evidentne z pásu vypadol) je v advanceBoxTracker() (src/live-events.mjs),
+// zdieľaná a testovaná — tu len prepojíme na performance.now().
 function updateBoxTracker(boxesAsc) {
-  const now = performance.now();
-  for (const box of boxesAsc) {
-    if (!box || !box.boxCode || !Array.isArray(box.edgeIds) || !box.edgeIds.length) continue;
-    // Kibana sa pýta na posledných ~500 záznamov pri KAŽDOM polle (nie len na
-    // nové od posledného pollu) — tá istá už spracovaná udalosť sa preto
-    // objaví znova aj v ďalších polloch, hoci sa reálne nič nezmenilo.
-    // Reset legStartAt (nový úsek animácie od nuly) len keď observedAt
-    // skutočne pokročil, teda ide o naozaj novú udalosť (napr. potvrdenie
-    // z ďalšieho čidla) — inak by sa animácia reštartovala od začiatku
-    // úseku každé 3 sekundy namiesto plynulého behu k hranici a bedna by na
-    // dlhších (viachranových) úsekoch nikdy nedobehla k ďalšiemu čidlu.
-    const existing = state.boxTracker.get(box.boxCode);
-    if (existing && box.observedAt && existing.observedAt === box.observedAt) continue;
-    state.boxTracker.set(box.boxCode, {
-      edgeIds: box.edgeIds,
-      nextAgent: box.nextAgent || null,
-      terminal: !!box.terminal,
-      observedAt: box.observedAt || null,
-      legStartAt: now
-    });
-  }
-  for (const [boxCode, box] of state.boxTracker) {
-    if (!box.terminal && (now - box.legStartAt) > BOX_WAIT_TIMEOUT_MS) state.boxTracker.delete(boxCode);
-  }
+  const { tracker, evicted } = window.advanceBoxTracker(state.boxTracker, boxesAsc, performance.now(), BOX_GHOST_TIMEOUT_MS);
+  state.boxTracker = tracker;
+  if (evicted.length) console.debug('[boxTracker] bedna sa nikdy nepotvrdila na ďalšom čidle, vyradená:', evicted);
 }
 
 // Turns a buildSnapshot()-shaped snapshot into state.simulation for the

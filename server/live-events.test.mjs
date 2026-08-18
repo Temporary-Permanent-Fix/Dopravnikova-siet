@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeLiveEvent, passiveSegment, buildSnapshot, elasticTemplates, parseRenderedMessage, demoCratesByEdgeAt, boxTrackerCratesByEdge } from '../src/live-events.mjs';
+import { normalizeLiveEvent, passiveSegment, buildSnapshot, elasticTemplates, parseRenderedMessage, demoCratesByEdgeAt, boxTrackerCratesByEdge, advanceBoxTracker } from '../src/live-events.mjs';
 
 const root = resolve(import.meta.dirname, '..');
 const fixturesDir = join(import.meta.dirname, 'fixtures');
@@ -381,4 +381,103 @@ test('boxTrackerCratesByEdge: terminal box that fully reached the end is reporte
 
   assert.deepEqual(expired, ['BOX-1']);
   assert.equal(byEdge.size, 0);
+});
+
+test('advanceBoxTracker: tracks a brand-new box with no prior entry', () => {
+  const { tracker, evicted } = advanceBoxTracker([], [
+    { boxCode: 'BOX-1', edgeIds: ['e1', 'e2'], nextAgent: 'X', terminal: false, observedAt: '2026-01-01T00:00:00.000Z' }
+  ], 1000, 600000);
+
+  assert.deepEqual(evicted, []);
+  assert.deepEqual(tracker.get('BOX-1'), {
+    edgeIds: ['e1', 'e2'], nextAgent: 'X', terminal: false, observedAt: '2026-01-01T00:00:00.000Z', legStartAt: 1000
+  });
+});
+
+test('advanceBoxTracker: a re-polled identical event (same observedAt) is a no-op, does not reset legStartAt', () => {
+  const initial = [['BOX-1', { edgeIds: ['e1'], nextAgent: 'X', terminal: false, observedAt: 't1', legStartAt: 500 }]];
+
+  const { tracker, evicted } = advanceBoxTracker(initial, [
+    { boxCode: 'BOX-1', edgeIds: ['e1'], nextAgent: 'X', terminal: false, observedAt: 't1' }
+  ], 9999, 600000);
+
+  assert.deepEqual(evicted, []);
+  assert.equal(tracker.get('BOX-1').legStartAt, 500);
+});
+
+test('advanceBoxTracker: a box progressing to a new segment with no sibling on the old one just advances, no eviction', () => {
+  const initial = [['BOX-1', { edgeIds: ['e1'], nextAgent: 'A', terminal: false, observedAt: '2026-01-01T00:00:00.000Z', legStartAt: 100 }]];
+
+  const { tracker, evicted } = advanceBoxTracker(initial, [
+    { boxCode: 'BOX-1', edgeIds: ['e5'], nextAgent: 'B', terminal: false, observedAt: '2026-01-01T00:00:10.000Z' }
+  ], 5000, 600000);
+
+  assert.deepEqual(evicted, []);
+  assert.deepEqual(tracker.get('BOX-1').edgeIds, ['e5']);
+  assert.equal(tracker.get('BOX-1').legStartAt, 5000);
+});
+
+test('advanceBoxTracker: a later-arriving box confirmed past a segment evicts an earlier box still stuck there (train order violation)', () => {
+  const initial = [
+    ['BOX-OLD', { edgeIds: ['e1', 'e2'], nextAgent: 'X', terminal: false, observedAt: '2026-01-01T00:00:00.000Z', legStartAt: 100 }],
+    ['BOX-NEW', { edgeIds: ['e1', 'e2'], nextAgent: 'X', terminal: false, observedAt: '2026-01-01T00:00:05.000Z', legStartAt: 200 }]
+  ];
+
+  // BOX-NEW entered the e1>e2 segment AFTER BOX-OLD, but now proves it made
+  // it all the way past — a passive segment can't be overtaken, so BOX-OLD
+  // (still parked on e1>e2) must have left the belt some other way.
+  const { tracker, evicted } = advanceBoxTracker(initial, [
+    { boxCode: 'BOX-NEW', edgeIds: ['e9'], nextAgent: 'Y', terminal: false, observedAt: '2026-01-01T00:00:20.000Z' }
+  ], 9000, 600000);
+
+  assert.deepEqual(evicted, ['BOX-OLD']);
+  assert.equal(tracker.has('BOX-OLD'), false);
+  assert.deepEqual(tracker.get('BOX-NEW').edgeIds, ['e9']);
+});
+
+test('advanceBoxTracker: the earlier box being confirmed does NOT evict a later box still legitimately in transit', () => {
+  const initial = [
+    ['BOX-OLD', { edgeIds: ['e1', 'e2'], nextAgent: 'X', terminal: false, observedAt: '2026-01-01T00:00:00.000Z', legStartAt: 100 }],
+    ['BOX-NEW', { edgeIds: ['e1', 'e2'], nextAgent: 'X', terminal: false, observedAt: '2026-01-01T00:00:05.000Z', legStartAt: 200 }]
+  ];
+
+  const { tracker, evicted } = advanceBoxTracker(initial, [
+    { boxCode: 'BOX-OLD', edgeIds: ['e9'], nextAgent: 'Y', terminal: false, observedAt: '2026-01-01T00:00:20.000Z' }
+  ], 9000, 600000);
+
+  assert.deepEqual(evicted, []);
+  assert.equal(tracker.has('BOX-NEW'), true);
+});
+
+test('advanceBoxTracker: order-violation eviction only applies within the same segment, unrelated boxes are untouched', () => {
+  const initial = [
+    ['BOX-OLD', { edgeIds: ['e1', 'e2'], nextAgent: 'X', terminal: false, observedAt: '2026-01-01T00:00:00.000Z', legStartAt: 100 }],
+    ['BOX-OTHER', { edgeIds: ['e7'], nextAgent: 'Z', terminal: false, observedAt: '2026-01-01T00:00:01.000Z', legStartAt: 100 }],
+    ['BOX-NEW', { edgeIds: ['e1', 'e2'], nextAgent: 'X', terminal: false, observedAt: '2026-01-01T00:00:05.000Z', legStartAt: 200 }]
+  ];
+
+  const { tracker, evicted } = advanceBoxTracker(initial, [
+    { boxCode: 'BOX-NEW', edgeIds: ['e9'], nextAgent: 'Y', terminal: false, observedAt: '2026-01-01T00:00:20.000Z' }
+  ], 9000, 600000);
+
+  assert.deepEqual(evicted, ['BOX-OLD']);
+  assert.equal(tracker.has('BOX-OTHER'), true);
+});
+
+test('advanceBoxTracker: ghost timeout is a last-resort backstop for a box with no sibling to ever reveal it is lost', () => {
+  const initial = [['BOX-LONE', { edgeIds: ['e1'], nextAgent: 'X', terminal: false, observedAt: 't0', legStartAt: 0 }]];
+
+  const { tracker, evicted } = advanceBoxTracker(initial, [], 700000, 600000);
+
+  assert.deepEqual(evicted, ['BOX-LONE']);
+  assert.equal(tracker.has('BOX-LONE'), false);
+});
+
+test('advanceBoxTracker: terminal boxes are exempt from the ghost timeout', () => {
+  const initial = [['BOX-TERM', { edgeIds: ['e1'], nextAgent: null, terminal: true, observedAt: 't0', legStartAt: 0 }]];
+
+  const { tracker, evicted } = advanceBoxTracker(initial, [], 999999999, 600000);
+
+  assert.deepEqual(evicted, []);
+  assert.equal(tracker.has('BOX-TERM'), true);
 });
