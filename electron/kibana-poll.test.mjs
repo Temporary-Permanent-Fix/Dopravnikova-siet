@@ -1,8 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  buildQueryBody, normalizeHit, buildProxyUrl, classifyResult, createKibanaPoller, ALL_EVENT_KINDS, EVENT_TEMPLATES
+  buildQueryBody, normalizeHit, buildProxyUrl, classifyResult, createKibanaPoller, ALL_EVENT_KINDS, EVENT_TEMPLATES,
+  buildInPageFetchScript
 } from './kibana-poll.js';
+
+test('buildInPageFetchScript sends the x-elastic-internal-origin header Kibana 8.15+ requires on /api/console/proxy', () => {
+  const script = buildInPageFetchScript('/api/console/proxy?path=%2Fp-lct-k8s-*%2F_search&method=POST', '{}');
+  assert.ok(script.includes("'x-elastic-internal-origin': 'Kibana'"));
+});
 
 test('buildQueryBody with no filters keeps only the base filter + noise exclusion', () => {
   const body = buildQueryBody({});

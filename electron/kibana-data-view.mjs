@@ -13,7 +13,9 @@ export function buildDataViewFetchScript(id, timeoutMs = 10000) {
   return `(async () => {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), ${JSON.stringify(timeoutMs)});
-    const headers = { 'kbn-xsrf': 'true' };
+    // x-elastic-internal-origin: keep in step with kibana-poll.js — Kibana
+    // 8.15+ 400s internal routes without it, and it's harmless on public ones.
+    const headers = { 'kbn-xsrf': 'true', 'x-elastic-internal-origin': 'Kibana' };
     try {
       let r = await fetch('/api/data_views/data_view/' + encodeURIComponent(${JSON.stringify(id)}), {
         credentials: 'same-origin', headers, signal: controller.signal

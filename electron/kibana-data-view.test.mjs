@@ -6,6 +6,7 @@ test('buildDataViewFetchScript embeds the data view id', () => {
   const script = buildDataViewFetchScript('view-1');
   assert.ok(script.includes('"view-1"'));
   assert.ok(script.includes('/api/data_views/data_view/'));
+  assert.ok(script.includes("'x-elastic-internal-origin': 'Kibana'"));
 });
 
 test('normalizeDataViewResponse reads the Kibana 8.x data_view shape', () => {

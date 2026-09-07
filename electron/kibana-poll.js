@@ -126,7 +126,10 @@ export function buildInPageFetchScript(proxyUrl, bodyJson, timeoutMs = 10000) {
       const r = await fetch(${JSON.stringify(proxyUrl)}, {
         method: 'POST',
         credentials: 'same-origin',
-        headers: { 'kbn-xsrf': 'true', 'Content-Type': 'application/json' },
+        // x-elastic-internal-origin: /api/console/proxy is an *internal* Kibana
+        // route; since Kibana 8.15 internal routes 400 ("Bad Request", no ES
+        // error.reason) unless the caller identifies as Kibana itself.
+        headers: { 'kbn-xsrf': 'true', 'x-elastic-internal-origin': 'Kibana', 'Content-Type': 'application/json' },
         body: ${JSON.stringify(bodyJson)},
         signal: controller.signal
       });

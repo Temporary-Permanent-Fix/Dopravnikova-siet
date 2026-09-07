@@ -329,11 +329,11 @@ async function resolveDataView(id) {
   let response;
   try {
     response = await fetch(`/api/data_views/data_view/${encodeURIComponent(id)}`, {
-      credentials: 'same-origin', headers: { 'kbn-xsrf': 'true' }
+      credentials: 'same-origin', headers: { 'kbn-xsrf': 'true', 'x-elastic-internal-origin': 'Kibana' }
     });
     if (response.status === 404) {
       response = await fetch(`/api/saved_objects/index-pattern/${encodeURIComponent(id)}`, {
-        credentials: 'same-origin', headers: { 'kbn-xsrf': 'true' }
+        credentials: 'same-origin', headers: { 'kbn-xsrf': 'true', 'x-elastic-internal-origin': 'Kibana' }
       });
     }
   } catch (e) {
@@ -390,7 +390,10 @@ async function fetchOnce(discoverState, trackedIndex) {
   const response = await fetch(proxyUrl, {
     method: 'POST',
     credentials: 'same-origin',
-    headers: { 'kbn-xsrf': 'true', 'Content-Type': 'application/json' },
+    // x-elastic-internal-origin: /api/console/proxy je *interný* Kibana route;
+    // od Kibany 8.15 interné routy bez tejto hlavičky vrátia HTTP 400
+    // ("Bad Request", bez ES error.reason).
+    headers: { 'kbn-xsrf': 'true', 'x-elastic-internal-origin': 'Kibana', 'Content-Type': 'application/json' },
     body: JSON.stringify(buildQueryBody(discoverState))
   });
   if (!response.ok) {
