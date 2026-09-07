@@ -2,6 +2,22 @@
 
 Formát vychází z [Keep a Changelog](https://keepachangelog.com/), verze podle [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH — pravidlo bumpu viz `AGENTS.md`).
 
+## [3.6.1] - 2026-09-07
+
+- Oprava: čierny text na čiernom pozadí v editačných poliach pravého
+  panela. `.field input` a `.select` mali tmavé pozadie (`var(--surface)`),
+  ale žiadnu `color`, takže prehliadač kreslil text v predvolenej čiernej
+  a bol úplne neviditeľný. Doplnená `color: var(--text)` na obe pravidlá,
+  farba placeholderu na `--text-tertiary`, plus poistka
+  `input, select, textarea, button { color: inherit }` a čitateľné
+  `select option` pre celý dark motív.
+- Oprava: **Ctrl+C** nekopírovalo označený text (názov uzla, hodnota v
+  tooltipe, …). Globálny `keydown` handler vždy zavolal `preventDefault()`
+  a in-memory `copySelection()`, čím zrušil natívne kopírovanie do
+  systémovej schránky. Teraz: ak je označený text (`window.getSelection`),
+  Ctrl+C nechá prehliadač skopírovať ho; na kopírovanie uzlov sa prepne
+  len keď nie je označený žiadny text.
+
 ## [3.6.0] - 2026-09-07
 
 - Editor a živé dáta rozdelené do dvoch pohľadov, prepínač **Editor /

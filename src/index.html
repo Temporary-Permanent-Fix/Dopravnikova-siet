@@ -88,6 +88,10 @@
   --ease:cubic-bezier(0.4,0,0.2,1); --t-fast:0.12s var(--ease); --t-base:0.18s var(--ease);
 }
 * { box-sizing: border-box; }
+/* Safety net: form controls default to the UA's black text, which is invisible
+   on this dark theme. Inherit the app's text colour unless a rule overrides it. */
+input, select, textarea, button { color: inherit; }
+select option { color: var(--text); background: var(--surface); }
 body {
   margin: 0;
   padding: 16px;
@@ -627,6 +631,7 @@ body {
   font-family: inherit;
   font-size: 13px;
   background: var(--surface);
+  color: var(--text);
   cursor: pointer;
   appearance: none;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' stroke='%23b0b0b0' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
@@ -1378,8 +1383,10 @@ body {
   font-family: inherit;
   font-size: 13px;
   background: var(--surface);
+  color: var(--text);
   width: 240px;
 }
+.field input::placeholder { color: var(--text-tertiary); }
 .field input:focus {
   outline: none;
   border-color: var(--accent);
@@ -9010,8 +9017,12 @@ document.addEventListener('keydown', e => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
     e.preventDefault(); undo(); return;
   }
-  // Ctrl+C = copy selection (when not in an input)
+  // Ctrl+C — if the user has highlighted text (node label, tooltip value, …)
+  // let the browser copy it to the system clipboard; only fall back to the
+  // in-memory node copy when nothing is selected as text.
   if ((e.ctrlKey || e.metaKey) && e.key === 'c' && !e.shiftKey) {
+    const textSel = window.getSelection && window.getSelection().toString().trim();
+    if (textSel) return; // native copy
     e.preventDefault(); copySelection(); return;
   }
   // Ctrl+V = paste
