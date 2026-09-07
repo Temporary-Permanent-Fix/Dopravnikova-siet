@@ -160,6 +160,7 @@ body {
   .canvas-wrap { flex: none; }
   #canvas { height: calc(100vh - 220px); min-height: 480px; }
   .sidebar { position: static; max-height: none; }
+  .data-view { overflow: visible; }
 }
 .sidebar {
   position: sticky;
@@ -759,6 +760,68 @@ body {
   color: var(--text-secondary);
   font-size: 12.5px;
 }
+/* Prepínač hlavného pohľadu (Editor / Live dáta) v top-bare. Sedí v jednom
+   riadku s logom a toolbarom — nezasahuje do výšky pracovnej plochy. */
+.view-tabs {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--bg-soft, var(--bg));
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.view-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.view-tab i { font-size: 15px; }
+.view-tab:hover { color: var(--text); background: var(--surface-soft, rgba(255,255,255,0.04)); }
+.view-tab.active { background: var(--accent); color: #fff; }
+.view-tab.active:hover { background: var(--accent-hover, var(--accent)); color: #fff; }
+
+/* "Live dáta" pohľad — samostatná plocha, ktorá prekryje editor. Vlastný
+   scroll, takže dlhé panely (Kibana, Replay) nikdy neroztiahnu layout editora. */
+.data-view {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+/* .main-grid (display:grid) a .data-view (display:flex) by inak prebili UA
+   štýl atribútu [hidden] — prepínač pohľadu sa naň spolieha. */
+.main-grid[hidden], .data-view[hidden] { display: none !important; }
+
+/* Plávajúci prepínač živého pohybu nad plátnom — jediné live tlačidlo, ktoré
+   ostáva pri editore (rovnaký pill štýl ako .zoom-controls). */
+.canvas-live-controls {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px;
+  box-shadow: 0 2px 10px rgba(20, 23, 28, 0.06);
+}
+.canvas-live-controls .btn-sim { border-radius: 999px; padding: 6px 14px; font-size: 12.5px; }
 .zoom-controls {
   position: absolute;
   bottom: 14px;
@@ -1682,6 +1745,10 @@ kbd {
           <div class="header-logo-title">Live Dopravníky</div>
         </div>
       </div>
+      <div class="view-tabs" id="view-tabs" role="tablist">
+        <button class="view-tab active" data-view="editor" role="tab" type="button"><i class="ti ti-sitemap"></i>Editor</button>
+        <button class="view-tab" data-view="data" role="tab" type="button"><i class="ti ti-activity-heartbeat"></i>Live dáta</button>
+      </div>
       <div class="header-search-wrap">
         <div class="header-search">
           <i class="ti ti-search"></i>
@@ -1800,56 +1867,10 @@ kbd {
           <button id="btn-zoom-reset" title="Reset (Ctrl+0)" style="font-size: 11px; font-family: 'IBM Plex Mono', monospace; width: auto; padding: 0 8px;">1:1</button>
           <button id="btn-renderer" title="Vykreslování: SVG / Canvas (rychlé pro velké sítě)" style="font-size: 10px; font-family: 'IBM Plex Mono', monospace; width: auto; padding: 0 8px;">SVG</button>
         </div>
-      </div>
-
-      <div class="sim-panel">
-        <div class="sim-buttons">
-          <button class="btn-sim" id="btn-simulate">▶ Rovnoměrné</button>
-          <button class="btn-sim-opt" id="btn-optimize">⚙ Optimalizovat</button>
-          <button class="btn-sim" id="btn-telemetry-demo" title="Demo pohybu podle doplněných Kibana směrů">▶ Demo pohyb</button>
-          <button class="btn-sim" id="btn-live-filter" title="Filtrovať Live logs rovnako ako pills v Kibana Discover (posiela sa do vstavanej Kibana karty alebo browser extension)">🔎 Filter</button>
-          <button class="btn-sim" id="btn-live-logs" title="Živé sirové logy tms-multi-agent (cez vstavanú Kibana kartu alebo browser extension SKLC3 Live Logs Bridge)">📋 Live logs</button>
+        <div class="canvas-live-controls" id="canvas-live-controls">
           <button class="btn-sim" id="btn-live-logs-movement" title="Animácia KLT pohybu na plátne podľa živých dát z vstavanej Kibana karty alebo browser extension">▶ Živý pohyb</button>
-          <button class="btn-sim" id="btn-kibana-view" title="Vstavaná Kibana — prihlás sa priamo tu, appka z tejto session na pozadí číta dáta (nahrádza browser extension v desktop builde)">🌐 Kibana</button>
-          <button class="icon-btn" id="btn-kibana-maximize" title="Kibana na celú obrazovku" hidden><i class="ti ti-arrows-maximize"></i></button>
-          <button class="btn-sim" id="btn-replay" title="Offline prehrávanie z CSV exportu Kibana Discoveru (napr. export do Excelu) — bez pripojenia na Kibanu, na testovanie/nácvik vizualizácie pohybu">🧪 Replay CSV</button>
-          <button class="btn-sim-export" id="btn-export-sim" disabled title="Nejdřív spusť Optimalizaci">⤓ TMS matice (CSV)</button>
-          <button class="btn-sim-export" id="btn-export-assignment" disabled title="Nejdřív naimportuj trasy v Matici cílů">⤓ Cíl × trasa (CSV)</button>
-          <div class="toolbar-dropdown" id="sim-tabs-settings-dropdown">
-            <button class="icon-btn" id="btn-sim-tabs-settings" title="Zobrazit/skrýt tlačítka panelu" aria-haspopup="true" aria-expanded="false"><i class="ti ti-adjustments"></i></button>
-            <div class="dropdown-menu" id="sim-tabs-settings-menu" hidden>
-              <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-simulate" checked> ▶ Rovnoměrné</label>
-              <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-optimize" checked> ⚙ Optimalizovat</label>
-              <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-telemetry-demo" checked> ▶ Demo pohyb</label>
-              <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-live-filter" checked> 🔎 Filter</label>
-              <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-live-logs" checked> 📋 Live logs</label>
-              <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-live-logs-movement" checked> ▶ Živý pohyb</label>
-              <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-kibana-view" checked> 🌐 Kibana</label>
-              <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-replay" checked> 🧪 Replay CSV</label>
-              <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-export-sim" checked> ⤓ TMS matice (CSV)</label>
-              <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-export-assignment" checked> ⤓ Cíl × trasa (CSV)</label>
-            </div>
-          </div>
-        </div>
-        <div class="sim-shares" id="sim-shares"></div>
-        <div class="sim-preflight" id="sim-preflight"></div>
-        <div class="live-filter-panel" id="live-filter-panel" hidden aria-live="polite"></div>
-        <div class="live-logs-panel" id="live-logs-panel" hidden aria-live="polite"></div>
-        <div class="kibana-view-panel" id="kibana-view-panel" hidden aria-live="polite"></div>
-        <div class="replay-panel" id="replay-panel" hidden aria-live="polite"></div>
-        <input type="file" id="replay-csv-input" accept=".csv,text/csv" style="display:none">
-        <span class="sim-result" id="sim-result">
-          <span class="empty">Rovnoměrné = každý uzel rozdělí tok stejnoměrně. Optimalizace = LP najde nejlepší rozdělení podle podílů cílů.</span>
-        </span>
-        <div class="sim-legend" id="sim-legend" style="display:none;">
-          <div class="sim-legend-item"><span class="sim-swatch" style="background:#65a30d"></span>&lt;60%</div>
-          <div class="sim-legend-item"><span class="sim-swatch" style="background:#d97706"></span>60–85%</div>
-          <div class="sim-legend-item"><span class="sim-swatch" style="background:#ea580c"></span>85–100%</div>
-          <div class="sim-legend-item"><span class="sim-swatch" style="background:#dc2626"></span>&gt;100%</div>
         </div>
       </div>
-
-      <div class="sim-details" id="sim-details" hidden></div>
     </div>
 
     <aside class="sidebar">
@@ -1934,6 +1955,55 @@ kbd {
       </div>
     </aside>
   </div>
+
+  <section class="data-view" id="data-view" hidden>
+    <div class="sim-panel">
+      <div class="sim-buttons">
+        <button class="btn-sim" id="btn-simulate">▶ Rovnoměrné</button>
+        <button class="btn-sim-opt" id="btn-optimize">⚙ Optimalizovat</button>
+        <button class="btn-sim" id="btn-telemetry-demo" title="Demo pohybu podle doplněných Kibana směrů">▶ Demo pohyb</button>
+        <button class="btn-sim" id="btn-live-filter" title="Filtrovať Live logs rovnako ako pills v Kibana Discover (posiela sa do vstavanej Kibana karty alebo browser extension)">🔎 Filter</button>
+        <button class="btn-sim" id="btn-live-logs" title="Živé sirové logy tms-multi-agent (cez vstavanú Kibana kartu alebo browser extension SKLC3 Live Logs Bridge)">📋 Live logs</button>
+        <button class="btn-sim" id="btn-kibana-view" title="Vstavaná Kibana — prihlás sa priamo tu, appka z tejto session na pozadí číta dáta (nahrádza browser extension v desktop builde)">🌐 Kibana</button>
+        <button class="icon-btn" id="btn-kibana-maximize" title="Kibana na celú obrazovku" hidden><i class="ti ti-arrows-maximize"></i></button>
+        <button class="btn-sim" id="btn-replay" title="Offline prehrávanie z CSV exportu Kibana Discoveru (napr. export do Excelu) — bez pripojenia na Kibanu, na testovanie/nácvik vizualizácie pohybu">🧪 Replay CSV</button>
+        <button class="btn-sim-export" id="btn-export-sim" disabled title="Nejdřív spusť Optimalizaci">⤓ TMS matice (CSV)</button>
+        <button class="btn-sim-export" id="btn-export-assignment" disabled title="Nejdřív naimportuj trasy v Matici cílů">⤓ Cíl × trasa (CSV)</button>
+        <div class="toolbar-dropdown" id="sim-tabs-settings-dropdown">
+          <button class="icon-btn" id="btn-sim-tabs-settings" title="Zobrazit/skrýt tlačítka panelu" aria-haspopup="true" aria-expanded="false"><i class="ti ti-adjustments"></i></button>
+          <div class="dropdown-menu" id="sim-tabs-settings-menu" hidden>
+            <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-simulate" checked> ▶ Rovnoměrné</label>
+            <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-optimize" checked> ⚙ Optimalizovat</label>
+            <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-telemetry-demo" checked> ▶ Demo pohyb</label>
+            <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-live-filter" checked> 🔎 Filter</label>
+            <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-live-logs" checked> 📋 Live logs</label>
+            <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-kibana-view" checked> 🌐 Kibana</label>
+            <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-replay" checked> 🧪 Replay CSV</label>
+            <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-export-sim" checked> ⤓ TMS matice (CSV)</label>
+            <label class="dropdown-item"><input type="checkbox" data-sim-tab="btn-export-assignment" checked> ⤓ Cíl × trasa (CSV)</label>
+          </div>
+        </div>
+      </div>
+      <div class="sim-shares" id="sim-shares"></div>
+      <div class="sim-preflight" id="sim-preflight"></div>
+      <div class="live-filter-panel" id="live-filter-panel" hidden aria-live="polite"></div>
+      <div class="live-logs-panel" id="live-logs-panel" hidden aria-live="polite"></div>
+      <div class="kibana-view-panel" id="kibana-view-panel" hidden aria-live="polite"></div>
+      <div class="replay-panel" id="replay-panel" hidden aria-live="polite"></div>
+      <input type="file" id="replay-csv-input" accept=".csv,text/csv" style="display:none">
+      <span class="sim-result" id="sim-result">
+        <span class="empty">Rovnoměrné = každý uzel rozdělí tok stejnoměrně. Optimalizace = LP najde nejlepší rozdělení podle podílů cílů.</span>
+      </span>
+      <div class="sim-legend" id="sim-legend" style="display:none;">
+        <div class="sim-legend-item"><span class="sim-swatch" style="background:#65a30d"></span>&lt;60%</div>
+        <div class="sim-legend-item"><span class="sim-swatch" style="background:#d97706"></span>60–85%</div>
+        <div class="sim-legend-item"><span class="sim-swatch" style="background:#ea580c"></span>85–100%</div>
+        <div class="sim-legend-item"><span class="sim-swatch" style="background:#dc2626"></span>&gt;100%</div>
+      </div>
+    </div>
+
+    <div class="sim-details" id="sim-details" hidden></div>
+  </section>
 </div>
 
 <div id="edge-tooltip" style="display:none;"></div>
@@ -9128,7 +9198,7 @@ document.getElementById('btn-export-assignment').addEventListener('click', expor
 
 // Skrývání jednotlivých tlačítek spodního sim panelu (perzistováno v localStorage).
 const SIM_TABS_STORAGE_KEY = 'sklc3SimPanelHiddenTabs';
-const SIM_TAB_IDS = ['btn-simulate', 'btn-optimize', 'btn-telemetry-demo', 'btn-live-filter', 'btn-live-logs', 'btn-live-logs-movement', 'btn-kibana-view', 'btn-replay', 'btn-export-sim', 'btn-export-assignment'];
+const SIM_TAB_IDS = ['btn-simulate', 'btn-optimize', 'btn-telemetry-demo', 'btn-live-filter', 'btn-live-logs', 'btn-kibana-view', 'btn-replay', 'btn-export-sim', 'btn-export-assignment'];
 function getHiddenSimTabs() {
   try { return new Set(JSON.parse(localStorage.getItem(SIM_TABS_STORAGE_KEY) || '[]')); } catch (e) { return new Set(); }
 }
@@ -9167,6 +9237,45 @@ applySimTabVisibility();
   });
   document.addEventListener('click', e => { if (!menu.hidden && !wrap.contains(e.target)) closeMenu(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && !menu.hidden) closeMenu(); });
+})();
+
+// Hlavný prepínač pohľadu: "editor" (plátno + paleta) vs "data" (celý sim-panel
+// a jeho podpanely — Kibana, Live logs, Filter, Replay CSV). Živý pohyb beží
+// ďalej aj v editore: poller v hlavnom procese (electron/kibana-poll.js) číta
+// dáta bez ohľadu na to, či je natívny Kibana view viditeľný.
+const ACTIVE_VIEW_STORAGE_KEY = 'sklc3ActiveView';
+function applyActiveView(view) {
+  const isData = view === 'data';
+  const grid = document.getElementById('main-grid');
+  const dataView = document.getElementById('data-view');
+  if (grid) grid.hidden = isData;
+  if (dataView) dataView.hidden = !isData;
+  document.querySelectorAll('#view-tabs .view-tab').forEach(b => {
+    b.classList.toggle('active', b.dataset.view === view);
+    b.setAttribute('aria-selected', b.dataset.view === view ? 'true' : 'false');
+  });
+  if (isData) {
+    // Späť na dátový tab — obnov natívny Kibana view a jeho rozmery.
+    updateKibanaViewVisibility();
+  } else {
+    // Preč z dátového tabu — stiahni OS-level Kibana overlay z editora a
+    // prekresli plátno, ktoré sa počas skrytia nevykresľovalo.
+    window.kibanaBridge?.setViewVisible(false);
+    render();
+  }
+}
+function setActiveView(view) {
+  try { localStorage.setItem(ACTIVE_VIEW_STORAGE_KEY, view); } catch (e) {}
+  applyActiveView(view);
+}
+document.getElementById('view-tabs')?.addEventListener('click', e => {
+  const btn = e.target.closest('.view-tab');
+  if (btn) setActiveView(btn.dataset.view);
+});
+(function initActiveView() {
+  let v = 'editor';
+  try { if (localStorage.getItem(ACTIVE_VIEW_STORAGE_KEY) === 'data') v = 'data'; } catch (e) {}
+  applyActiveView(v);
 })();
 
 document.getElementById('btn-export').addEventListener('click', () => {

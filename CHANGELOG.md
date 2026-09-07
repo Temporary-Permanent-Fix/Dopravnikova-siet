@@ -2,6 +2,30 @@
 
 Formát vychází z [Keep a Changelog](https://keepachangelog.com/), verze podle [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH — pravidlo bumpu viz `AGENTS.md`).
 
+## [3.6.0] - 2026-09-07
+
+- Editor a živé dáta rozdelené do dvoch pohľadov, prepínač **Editor /
+  Live dáta** je v hlavičke vedľa loga (`#view-tabs` v `src/index.html`).
+  Motiv: spodná lišta (`.sim-panel`) a jej podpanely (`🔎 Filter`,
+  `📋 Live logs`, `🌐 Kibana`, `🧪 Replay CSV`) po otvorení rozťahovali
+  layout editora a stláčali plátno.
+  - Pohľad **Editor** je pôvodná pracovná plocha (lišta pater + plátno +
+    paleta uzlov), bez spodnej lišty. Jediný živý ovládač pri plátne je
+    nový plávajúci pill **▶ Živý pohyb** v ľavom hornom rohu plátna
+    (`#canvas-live-controls`, rovnaký štýl ako `.zoom-controls`).
+  - Pohľad **Live dáta** (`#data-view`) je samostatná plocha s vlastným
+    scrollom, kam sa presunul celý `.sim-panel` + `#sim-details`
+    (Rovnoměrné, Optimalizovat, Demo pohyb, Filter, Live logs, Kibana,
+    Replay CSV, CSV exporty, shares/preflight/legenda). Otvorenie
+    ktoréhokoľvek podpanelu už nezasahuje do rozloženia editora.
+  - Živý pohyb beží ďalej aj v pohľade Editor: poller v hlavnom procese
+    (`electron/kibana-poll.js`) číta dáta bez ohľadu na to, či je
+    natívny Kibana view viditeľný. Pri prepnutí do Editora sa Kibana
+    overlay stiahne (`setViewVisible(false)`) a plátno sa prekreslí;
+    pri návrate do Live dát sa obnoví.
+  - Posledný zvolený pohľad sa pamätá v `localStorage`
+    (`sklc3ActiveView`).
+
 ## [3.5.0] - 2026-08-18
 
 - Appka premenovaná na **Live Dopravníky** (predtým "Editor dopravníkové
