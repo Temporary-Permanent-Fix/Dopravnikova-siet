@@ -2,6 +2,19 @@
 
 Formát vychází z [Keep a Changelog](https://keepachangelog.com/), verze podle [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH — pravidlo bumpu viz `AGENTS.md`).
 
+## [3.7.1] - 2026-09-07
+
+- Prázdny inšpektor počas živého pohybu (Živý pohyb / Replay / Demo)
+  vyzýva „Klikni na dopravník — inšpektor ukáže KLT, ktoré sú práve na
+  tom úseku." namiesto pôvodného textu o úprave vlastností. Spustenie
+  aj zastavenie pohybu (`toggleLiveLogsMovement`, `toggleTelemetryDemo`,
+  `playReplay`/`pauseReplay`) teraz volá `updateProps()`, takže sa panel
+  prepne okamžite, nielen po ďalšom kliknutí.
+- Pohybujúce sa bedny na páse sú výraznejšie: jemne pulzujúca modrá žiara
+  (`shadowBlur`) + biely obrys okolo KLT, aby počas živého pohybu jasne
+  vyskočili z pásu. „Waiting" bedny majú naďalej jantárový pulz (bez
+  žiary), takže sa dva stavy stále rozlíšia.
+
 ## [3.7.0] - 2026-09-07
 
 - Inšpektor úseku má počas živého pohybu samostatný **„Živý pohľad"** režim.

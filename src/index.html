@@ -4358,6 +4358,7 @@ async function toggleTelemetryDemo() {
     document.getElementById('sim-result').innerHTML =
       '<span><strong>Demo pohyb</strong> ·</span><span>' + mappedCount + ' namapovaných smerov z Kibany</span><span style="opacity:0.6;">simulované dáta, bez API pripojenia</span>';
     flash('▶ Demo pohybu spustené podľa uložených Kibana smerov');
+    updateProps();  // prepni inšpektor do „živého pohľadu"
   } catch (err) {
     flash('✗ Demo sa nepodarilo načítať: ' + err.message);
   }
@@ -4370,6 +4371,7 @@ function toggleLiveLogsMovement() {
   const btn = document.getElementById('btn-live-logs-movement');
   if (btn) { btn.textContent = '■ Zastaviť pohyb'; btn.classList.add('active'); }
   flash('▶ Živý pohyb spustený — čaká sa na dáta z browser extension');
+  updateProps();  // prepni inšpektor do „živého pohľadu"
   if (state.liveLogsRecords.size) applyLiveLogsMovement([...state.liveLogsRecords.values()]);
 }
 
@@ -4721,6 +4723,7 @@ function playReplay() {
   r.lastTickPerfMs = performance.now();
   r.tickTimer = setInterval(replayTick, REPLAY_TICK_MS);
   renderReplayPanel();
+  updateProps();  // prepni inšpektor do „živého pohľadu"
 }
 
 function pauseReplay() {
@@ -4728,6 +4731,7 @@ function pauseReplay() {
   if (r.tickTimer) { clearInterval(r.tickTimer); r.tickTimer = null; }
   r.playing = false;
   renderReplayPanel();
+  updateProps();  // späť na plné editačné pole
 }
 
 function toggleReplayPlay() {
@@ -7130,6 +7134,17 @@ function drawKltCrate(ctx, point, waiting) {
   ctx.save();
   ctx.translate(point.x, point.y);
   ctx.rotate(Math.atan2(point.uy, point.ux));
+  // Pohybujúca sa bedna (nie "waiting") dostane jemne dýchajúcu modrú žiaru +
+  // biely obrys, aby jasne vyskočila z pásu a oko ju udržalo počas pohybu.
+  if (!waiting) {
+    const g = 0.5 + 0.5 * Math.sin(performance.now() / 320);
+    ctx.save();
+    ctx.shadowColor = `rgba(96,181,232,${(0.55 + 0.35 * g).toFixed(2)})`;
+    ctx.shadowBlur = 9 + 4 * g;
+    ctx.fillStyle = '#2c83b5';
+    ctx.fillRect(-7, -6, 14, 9);
+    ctx.restore();
+  }
   ctx.fillStyle = 'rgba(0,0,0,0.25)';
   ctx.fillRect(-6, -3, 13, 9);
   ctx.fillStyle = '#2c83b5';
@@ -7148,6 +7163,10 @@ function drawKltCrate(ctx, point, waiting) {
     ctx.strokeStyle = `rgba(245,158,11,${pulse.toFixed(2)})`;
     ctx.lineWidth = 2;
     ctx.strokeRect(-9, -8, 18, 13);
+  } else {
+    ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+    ctx.lineWidth = 1.4;
+    ctx.strokeRect(-8, -7, 16, 11);
   }
   ctx.restore();
 }
@@ -8272,7 +8291,10 @@ function refreshEdgeKltPanel() {
 
 function updateProps() {
   if (!state.selected) {
-    propsEl.innerHTML = '<div class="props-eyebrow">Inspektor</div><div class="insp-empty"><i class="ti ti-click"></i><p>Klikni na uzel nebo dopravník pro úpravu vlastností.</p></div>';
+    const emptyMsg = isLiveMovementActive()
+      ? 'Klikni na dopravník — inšpektor ukáže KLT, ktoré sú práve na tom úseku.'
+      : 'Klikni na uzel nebo dopravník pro úpravu vlastností.';
+    propsEl.innerHTML = '<div class="props-eyebrow">Inspektor</div><div class="insp-empty"><i class="ti ti-click"></i><p>' + emptyMsg + '</p></div>';
     return;
   }
   if (state.selected.type === 'divider') {
