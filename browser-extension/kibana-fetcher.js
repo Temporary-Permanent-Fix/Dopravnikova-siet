@@ -73,9 +73,13 @@ function buildQueryBody(discoverState) {
     (discoverFilter.negate ? negative : positive).push(discoverFilter.query);
   }
   const filter = [...BASE_FILTER, ...positive, { bool: { must_not: negative } }];
-  if (currentQuery) filter.push({ query_string: { query: currentQuery, default_field: 'message', lenient: true } });
+  // simple_query_string (not query_string): Discover's free-text bar is KQL,
+  // not Lucene, so exotic syntax doesn't always translate. query_string used
+  // to throw a parse error (HTTP 400) on that mismatch; simple_query_string
+  // never does — it treats unparseable syntax as a literal instead.
+  if (currentQuery) filter.push({ simple_query_string: { query: currentQuery, fields: ['message'], lenient: true } });
   if (discoverState?.queryString) {
-    filter.push({ query_string: { query: discoverState.queryString, default_field: 'message', lenient: true } });
+    filter.push({ simple_query_string: { query: discoverState.queryString, fields: ['message'], lenient: true } });
   }
   if (discoverState?.timeRange?.from || discoverState?.timeRange?.to) {
     const range = {};
@@ -396,7 +400,10 @@ async function fetchOnce(discoverState, trackedIndex) {
     if (response.status === 404) {
       throw Object.assign(new Error('Dev Tools Console proxy nie je pre tento účet dostupný'), { kind: 'not-found' });
     }
-    throw Object.assign(new Error(`Kibana vrátila HTTP ${response.status}`), { kind: 'http' });
+    const errorBody = await response.json().catch(() => null);
+    const reason = errorBody?.error?.reason || errorBody?.error?.root_cause?.[0]?.reason;
+    const message = reason ? `Kibana vrátila HTTP ${response.status}: ${reason}` : `Kibana vrátila HTTP ${response.status}`;
+    throw Object.assign(new Error(message), { kind: 'http' });
   }
   const body = await response.json();
   if (body?.error) {

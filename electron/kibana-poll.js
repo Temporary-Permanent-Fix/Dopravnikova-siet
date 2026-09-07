@@ -60,13 +60,15 @@ export function buildQueryBody({ filters = [], query = '', eventKinds = ALL_EVEN
     (discoverFilter.negate ? negative : positive).push(discoverFilter.query);
   }
   const filter = [...BASE_FILTER, ...positive, { bool: { must_not: negative } }];
-  if (query) filter.push({ query_string: { query, default_field: 'message', lenient: true } });
+  // simple_query_string (not query_string): Discover's free-text bar is KQL,
+  // not Lucene, so exotic syntax (unbalanced quotes/parens, KQL-only
+  // operators) doesn't always translate. query_string used to throw a parse
+  // error (HTTP 400) on that mismatch; simple_query_string never does — it
+  // treats unparseable syntax as a literal instead. Filter pills (handled
+  // above) decode losslessly regardless.
+  if (query) filter.push({ simple_query_string: { query, fields: ['message'], lenient: true } });
   if (discoverState?.queryString) {
-    // Best-effort: Discover's free-text bar is KQL, this treats it as a
-    // Lucene-ish query_string (same lenient approach already used for the
-    // app's own free-text field above). Exotic KQL syntax may not translate
-    // exactly — filter pills (handled above) decode losslessly instead.
-    filter.push({ query_string: { query: discoverState.queryString, default_field: 'message', lenient: true } });
+    filter.push({ simple_query_string: { query: discoverState.queryString, fields: ['message'], lenient: true } });
   }
   if (discoverState?.timeRange?.from || discoverState?.timeRange?.to) {
     const range = {};
@@ -128,8 +130,9 @@ export function buildInPageFetchScript(proxyUrl, bodyJson, timeoutMs = 10000) {
         body: ${JSON.stringify(bodyJson)},
         signal: controller.signal
       });
-      if (!r.ok) return { ok: false, status: r.status };
-      return { ok: true, body: await r.json() };
+      const body = await r.json().catch(() => null);
+      if (!r.ok) return { ok: false, status: r.status, body };
+      return { ok: true, body };
     } catch (e) {
       return { ok: false, networkError: String((e && e.message) || e) };
     } finally {
@@ -153,7 +156,9 @@ export function classifyResult(result) {
     return { error: { kind: 'not-found', message: 'Dev Tools Console proxy nie je pre tento účet dostupný' } };
   }
   if (result.status != null) {
-    return { error: { kind: 'http', message: `Kibana vrátila HTTP ${result.status}` } };
+    const reason = result.body?.error?.reason || result.body?.error?.root_cause?.[0]?.reason;
+    const message = reason ? `Kibana vrátila HTTP ${result.status}: ${reason}` : `Kibana vrátila HTTP ${result.status}`;
+    return { error: { kind: 'http', message } };
   }
   return { error: { kind: 'network', message: result.networkError || 'Neznáma sieťová chyba' } };
 }

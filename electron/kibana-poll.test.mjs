@@ -31,10 +31,10 @@ test('buildQueryBody ignores pills missing field or value', () => {
   assert.equal(body.query.bool.filter.length, 3);
 });
 
-test('buildQueryBody appends a query_string clause for free text', () => {
+test('buildQueryBody appends a simple_query_string clause for free text', () => {
   const body = buildQueryBody({ query: 'timeout' });
   const filter = body.query.bool.filter;
-  assert.deepEqual(filter[filter.length - 1], { query_string: { query: 'timeout', default_field: 'message', lenient: true } });
+  assert.deepEqual(filter[filter.length - 1], { simple_query_string: { query: 'timeout', fields: ['message'], lenient: true } });
 });
 
 test('buildQueryBody restricts to selected event kinds via a should clause', () => {
@@ -69,10 +69,10 @@ test('buildQueryBody routes a negated Discover filter into must_not', () => {
   assert.ok(mustNot.some(c => c.match_phrase?.level === 'Debug'));
 });
 
-test('buildQueryBody appends the Discover free-text query as a separate query_string clause', () => {
+test('buildQueryBody appends the Discover free-text query as a separate simple_query_string clause', () => {
   const body = buildQueryBody({ discoverState: { queryString: 'AgentName:DS01S03' } });
   const filter = body.query.bool.filter;
-  assert.deepEqual(filter[filter.length - 1], { query_string: { query: 'AgentName:DS01S03', default_field: 'message', lenient: true } });
+  assert.deepEqual(filter[filter.length - 1], { simple_query_string: { query: 'AgentName:DS01S03', fields: ['message'], lenient: true } });
 });
 
 test('buildQueryBody adds a range clause from the Discover time range using the resolved time field', () => {
@@ -110,6 +110,12 @@ test('classifyResult maps 404 to a not-found error', () => {
 
 test('classifyResult maps other HTTP statuses to a generic http error', () => {
   assert.equal(classifyResult({ ok: false, status: 500 }).error.kind, 'http');
+});
+
+test('classifyResult surfaces the Elasticsearch error reason on a non-ok HTTP status', () => {
+  const result = classifyResult({ ok: false, status: 400, body: { error: { reason: 'Failed to parse query' } } });
+  assert.equal(result.error.kind, 'http');
+  assert.equal(result.error.message, 'Kibana vrátila HTTP 400: Failed to parse query');
 });
 
 test('classifyResult maps thrown/network failures to a network error', () => {
