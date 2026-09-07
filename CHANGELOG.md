@@ -2,6 +2,18 @@
 
 Formát vychází z [Keep a Changelog](https://keepachangelog.com/), verze podle [Semantic Versioning](https://semver.org/) (MAJOR.MINOR.PATCH — pravidlo bumpu viz `AGENTS.md`).
 
+## [3.7.0] - 2026-09-07
+
+- Inšpektor úseku má počas živého pohybu samostatný **„Živý pohľad"** režim.
+  Keď beží **▶ Živý pohyb** (alebo Replay CSV / Demo pohyb) a klikneš na
+  dopravník, pravý panel už neukazuje editačné polia (Popisek segmentu,
+  Kapacita, Strana výstupu/vstupu, Pozícia úchytu) — namiesto toho zobrazí
+  len živé dáta úseku: **Prietok** (j/h), **Vyťaženie** (%, príp.
+  „obsadené") a zoznam **KLT na tomto úseku** s počtom, naďalej naživo
+  obnovovaný cez `refreshEdgeKltPanel()`. Editačný panel sa vráti po
+  zastavení pohybu (`clearSimulation()` teraz volá `updateProps()`).
+  Rozhoduje o tom nová `isLiveMovementActive()` v `src/index.html`.
+
 ## [3.6.1] - 2026-09-07
 
 - Oprava: čierny text na čiernom pozadí v editačných poliach pravého

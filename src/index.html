@@ -3817,6 +3817,7 @@ function clearSimulation() {
   updateExportButton();
   renderReplayPanel();
   render();
+  updateProps();  // späť z „živého pohľadu" inšpektora na plné editačné pole
 }
 
 function secondsSince(timestamp) {
@@ -8250,6 +8251,16 @@ function renderEdgeKltBadges(edgeId) {
   return crates.map(c => `<span style="font-family:monospace; font-size:11.5px; padding:3px 8px; border-radius:999px; background:var(--bg-soft); border:1px solid ${c.waiting ? '#be185d' : 'var(--border)'}; color:${c.waiting ? '#be185d' : 'inherit'};" title="${c.waiting ? 'Čaká na potvrdenie z ďalšieho čidla' : ''}">${escapeHtml(c.boxCode)}</span>`).join('');
 }
 
+// Beží niektorý z „živých" pohybových režimov (Živý pohyb / Replay CSV /
+// Demo pohyb)? Vtedy inšpektor úseku needituje layout — operátor sa pozerá
+// na živé dáta, tak mu ukážeme len zoznam KLT na úseku.
+function isLiveMovementActive() {
+  const m = state.simulation && state.simulation.mode;
+  return state.liveLogsMovementActive
+      || (state.replay && state.replay.playing)
+      || m === 'live-logs' || m === 'replay' || m === 'telemetry-demo';
+}
+
 // Cielená obnova zoznamu KLT badges pri každom live pollu, bez volania celého
 // updateProps() (to by prepísalo celý panel vrátane <input> polí Popisek/
 // Kapacita a zrušilo rozpracovanú editáciu).
@@ -8609,6 +8620,38 @@ function updateProps() {
     if (!edge) return;
     const from = getNode(edge.from);
     const to = getNode(edge.to);
+
+    // „Živý pohľad" — počas Živého pohybu / Replay / Demo sa úsek needituje,
+    // inšpektor je len okno na živé dáta: prietok, vyťaženie a zoznam KLT.
+    if (isLiveMovementActive()) {
+      const fromFloorLive = from ? state.floors.find(f => f.id === from.floor) : null;
+      const sim = state.simulation;
+      const rate = sim && sim.flow ? Math.round(sim.flow[edge.id] || 0) : null;
+      const util = sim && sim.utilization ? sim.utilization[edge.id] : null;
+      const occ = sim && sim.occupied ? sim.occupied[edge.id] === true : false;
+      const crateCount = (computeCratesByEdge().get(edge.id) || []).length;
+      const roVal = 'padding:6px 0; font-size:13px; color:var(--text); font-variant-numeric:tabular-nums;';
+      propsEl.innerHTML = `
+        <h3>Dopravník<span class="type-tag">${escapeHtml(from?.label || '?')} → ${escapeHtml(to?.label || '?')} · ${edge.id}</span></h3>
+        ${fromFloorLive ? `<div class="breadcrumb">${escapeHtml(fromFloorLive.name)}${edge.label ? ` <span>›</span> ${escapeHtml(edge.label)}` : ''} <span>›</span> Živý pohľad</div>` : ''}
+        <div class="fields-row">
+          <div class="field"><label>Prietok</label><div style="${roVal}">${rate != null ? rate + ' j/h' : '—'}</div></div>
+          <div class="field"><label>Vyťaženie</label><div style="${roVal}">${util != null ? Math.round(util * 100) + ' %' : '—'}${occ ? ' · obsadené' : ''}</div></div>
+        </div>
+        <div class="field" style="grid-column: 1 / -1; margin-top:4px;">
+          <label>KLT na tomto úseku
+            <span style="font-weight:400; color:var(--text-tertiary); font-size:11px;">— naživo z Kibany · ${crateCount}</span>
+          </label>
+          <div id="edge-klt-list" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:4px;">
+            ${renderEdgeKltBadges(edge.id)}
+          </div>
+        </div>
+        <div style="margin-top:8px; padding:6px 10px; background:var(--bg-soft); border-radius:5px; font-size:11.5px; color:var(--text-tertiary); line-height:1.5;">
+          Úsek sa počas živého pohľadu needituje. Kapacita <strong>${edge.properties.capacity ?? 1500} j/h</strong>. Zastav pohyb pre úpravu popisu, kapacity a strán úchytu.
+        </div>`;
+      return;
+    }
+
     const sideOptions = (current) => {
       const opts = [
         { v: 'auto',   l: 'Auto (nejbližší)' },
